@@ -1,0 +1,8 @@
+{
+  "clean_migrations": "PASS",
+  "alembic_drift": "PASS",
+  "seed": "PASS",
+  "health": "PASS",
+  "restart_persistence": "PASS",
+  "cross_tenant": "PASS"
+}

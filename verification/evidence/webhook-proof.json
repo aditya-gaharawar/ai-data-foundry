@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "data": {
+      "manifest_hash": "bf609af10351f64b790fd96dcff2f6afe3ab0236b0e32cd00232e06a449a96d8",
+      "run_id": "run_bcc47efd4638471b8064823780348eba",
+      "version_id": "ver_bcc47efd4638471b8064823780348eba"
+    },
+    "event_id": "evt_75ca7e5854484037945413f0d54a67fa",
+    "event_type": "dataset.version.published",
+    "occurred_at": "2026-11-04T18:40:44.967239+00:00",
+    "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+    "resource_id": "run_bcc47efd4638471b8064823780348eba",
+    "schema_version": "1.0"
+  },
+  "delivery_id": "dlv_eeab19143cdc4659a1e616732e80e690",
+  "raw_body_sha256": "afbc57a3f331b8649149324fb8f20389a55938f95533a81ecff4ee076cb24611",
+  "signature_verified_by_receiver": true,
+  "duplicate": true,
+  "signing_secret": "REDACTED; verified in the live integration test"
+}

@@ -1,0 +1,68 @@
+{
+  "observed_at": "2026-11-04T18:46:12.598174+00:00",
+  "client_timezone": "Asia/Kolkata",
+  "health": {
+    "status": "ready",
+    "dependencies": {
+      "database": true,
+      "object_storage": true,
+      "workflow": true
+    }
+  },
+  "run": {
+    "id": "run_bcc47efd4638471b8064823780348eba",
+    "dataset_id": "ds_3ab14a003b9e4b4e857c739b8eb07469",
+    "recipe_revision_id": "rev_55ac093286a34e90baf687c9016a24c5",
+    "status": "SUCCEEDED",
+    "sample_count": 100,
+    "processed": 100,
+    "spent_usd": 0.1
+  },
+  "version": {
+    "id": "ver_bcc47efd4638471b8064823780348eba",
+    "number": 1,
+    "manifest_sha256": "bf609af10351f64b790fd96dcff2f6afe3ab0236b0e32cd00232e06a449a96d8",
+    "source_sha256": "9cf61f526f67da71a7e2e83c8a1019902f2f43652856a791b3cd9a6aff2ab598",
+    "immutable_manifest_verified": true
+  },
+  "export": {
+    "id": "exp_738adbb88a4440f5a4ab9ae8a6fc89cd",
+    "status": "READY",
+    "bytes": 60320,
+    "rows": 100,
+    "sha256": "702c12d4c5b2e6ace149be67ca908c3ac1d28cb121432c98403fcd66cb30d5c0"
+  },
+  "cross_tenant": {
+    "dataset": 404,
+    "run": 404,
+    "copied_signed_download": 404
+  },
+  "sample": {
+    "content_hash": "9ae18b7c9568220b1750a6c30f65769d42153e68e2a3f1d4260fae874d3c7ab2",
+    "dataset_version_id": "ver_bcc47efd4638471b8064823780348eba",
+    "generation_run_id": "run_bcc47efd4638471b8064823780348eba",
+    "license_policy": {
+      "allowed_training_use": true,
+      "license": "local-synthetic",
+      "origin": "local-synthetic"
+    },
+    "modality": "text",
+    "payload": {
+      "prompt": "Example 1: What is 1824 + 409?",
+      "response": "2233",
+      "tags": [
+        "arithmetic",
+        "deterministic"
+      ]
+    },
+    "sample_id": "smp_9ae18b7c9568220b1750a6c30f65769d",
+    "schema_version": "1.0",
+    "source_refs": [
+      {
+        "engine": "deterministic.text@1",
+        "reproducibility": "deterministic",
+        "seed": 42
+      }
+    ]
+  }
+}

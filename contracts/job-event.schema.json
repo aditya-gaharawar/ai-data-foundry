@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://schemas.datafoundry.example/events/job/v1",
+  "title":"AI Data Foundry Job Event",
+  "type":"object",
+  "required":["event_id","event_type","occurred_at","schema_version","organization_id","resource_id","data"],
+  "additionalProperties":false,
+  "properties":{
+    "event_id":{"type":"string","minLength":10},
+    "event_type":{"enum":["run.queued","run.started","run.progress","run.failed","run.succeeded","dataset.version.published","export.ready","approval.required","budget.exhausted"]},
+    "occurred_at":{"type":"string","format":"date-time"},
+    "schema_version":{"const":"1.0"},
+    "organization_id":{"type":"string","minLength":1},
+    "resource_id":{"type":"string","minLength":1},
+    "data":{"type":"object"}
+  }
+}

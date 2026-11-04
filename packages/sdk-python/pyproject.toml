@@ -1,0 +1,13 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "datafoundry-sdk"
+version = "0.1.0"
+description = "Workspace-local typed Data Foundry HTTP client"
+requires-python = ">=3.12"
+dependencies = ["httpx>=0.28,<1", "pydantic>=2.14,<3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["datafoundry"]

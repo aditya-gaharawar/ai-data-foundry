@@ -1,0 +1,12 @@
+{
+  "name": "Verified text pipeline",
+  "schema_version": "1.0",
+  "nodes": [
+    {"id": "source", "type": "generate", "config": {"engine": "deterministic.text@1", "count": 100, "seed": 42}},
+    {"id": "validate", "type": "validate", "config": {"minimum_samples": 100, "max_duplicate_ratio": 0, "max_invalid_ratio": 0}},
+    {"id": "publish", "type": "publish", "config": {}},
+    {"id": "export", "type": "export", "config": {"format": "jsonl"}}
+  ],
+  "edges": [{"from": "source", "to": "validate"}, {"from": "validate", "to": "publish"}, {"from": "publish", "to": "export"}],
+  "budget": {"currency": "USD", "maximum": 1}
+}

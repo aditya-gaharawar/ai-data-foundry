@@ -1,0 +1,430 @@
+openapi: 3.1.0
+info:
+  title: AI Data Foundry API — planning contract
+  version: 0.1.0
+  description: Illustrative design contract, not a deployed API. Extend resource coverage
+    as implementation progresses.
+servers:
+- url: https://api.datafoundry.example
+  description: Example address, not live
+security:
+- bearerAuth: []
+tags:
+- name: Datasets
+- name: Runs
+- name: Uploads
+- name: Exports
+- name: Webhooks
+paths:
+  /v1/datasets:
+    post:
+      operationId: create_dataset
+      tags:
+      - Datasets
+      summary: Create dataset
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatasetCreate'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 128
+  /v1/datasets/{dataset_id}:
+    get:
+      operationId: get_dataset
+      tags:
+      - Datasets
+      summary: Get dataset
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      parameters:
+      - name: dataset_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/runs:
+    post:
+      operationId: submit_run
+      tags:
+      - Runs
+      summary: Submit run
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunCreate'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 128
+  /v1/runs/{run_id}:
+    get:
+      operationId: get_run
+      tags:
+      - Runs
+      summary: Get run
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/uploads:
+    post:
+      operationId: start_upload
+      tags:
+      - Uploads
+      summary: Start upload
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadSession'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadCreate'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 128
+  /v1/exports:
+    post:
+      operationId: create_export
+      tags:
+      - Exports
+      summary: Create export
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportCreate'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 128
+  /v1/webhooks:
+    post:
+      operationId: create_webhook
+      tags:
+      - Webhooks
+      summary: Create webhook
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        default:
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookCreate'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 128
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Problem:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        request_id:
+          type: string
+        code:
+          type: string
+    DatasetCreate:
+      type: object
+      required:
+      - project_id
+      - name
+      - modality
+      properties:
+        project_id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+        modality:
+          type: string
+          enum:
+          - text
+          - image
+          - audio
+          - video
+          - robotics
+          - multimodal
+          - tabular
+        schema:
+          type: object
+    Dataset:
+      type: object
+      required:
+      - id
+      - project_id
+      - name
+      - modality
+      - created_at
+      properties:
+        id:
+          type: string
+        project_id:
+          type: string
+        name:
+          type: string
+        modality:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    RunCreate:
+      type: object
+      required:
+      - dataset_id
+      - recipe_revision_id
+      - max_budget_usd
+      properties:
+        dataset_id:
+          type: string
+        recipe_revision_id:
+          type: string
+        max_budget_usd:
+          type: number
+          minimum: 0
+        compute_constraints:
+          type: object
+    Run:
+      type: object
+      required:
+      - id
+      - status
+      - dataset_id
+      properties:
+        id:
+          type: string
+        dataset_id:
+          type: string
+        status:
+          type: string
+          enum:
+          - CREATED
+          - VALIDATING
+          - AWAITING_APPROVAL
+          - QUEUED
+          - RUNNING
+          - VERIFYING
+          - PUBLISHING
+          - SUCCEEDED
+          - FAILED
+          - CANCELLED
+          - BLOCKED_POLICY
+        status_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        spent_usd:
+          type: number
+    UploadCreate:
+      type: object
+      required:
+      - dataset_id
+      - filename
+      - content_type
+      - bytes
+      - sha256
+      properties:
+        dataset_id:
+          type: string
+        filename:
+          type: string
+        content_type:
+          type: string
+        bytes:
+          type: integer
+          minimum: 1
+        sha256:
+          type: string
+          pattern: ^[a-fA-F0-9]{64}$
+    UploadSession:
+      type: object
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        upload_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+    ExportCreate:
+      type: object
+      required:
+      - version_id
+      - format
+      properties:
+        version_id:
+          type: string
+        format:
+          type: string
+          enum:
+          - jsonl
+          - parquet
+          - coco
+          - yolo
+          - lerobot
+    Export:
+      type: object
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        download_url:
+          type: string
+          format: uri
+    WebhookCreate:
+      type: object
+      required:
+      - url
+      - events
+      properties:
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        secret_name:
+          type: string
+    Webhook:
+      type: object
+      required:
+      - id
+      - url
+      - events
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+    ErrorCode:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+  responses:
+    BadRequest:
+      description: Validation or authorization error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

@@ -1,0 +1,20 @@
+{
+  "name": "ai-data-foundry",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "pnpm --filter @datafoundry/web dev",
+    "build": "pnpm --filter @datafoundry/web build",
+    "typecheck": "pnpm --filter @datafoundry/web typecheck && pnpm --filter @datafoundry/sdk typecheck",
+    "test:e2e": "playwright test",
+    "generate:types": "openapi-typescript packages/contracts/openapi.json -o packages/sdk-ts/src/schema.d.ts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.0",
+    "openapi-typescript": "^7.10.1",
+    "prettier": "3.6.2",
+    "typescript": "^5.9.3"
+  }
+}
