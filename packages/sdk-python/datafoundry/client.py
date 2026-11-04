@@ -8,7 +8,7 @@ from pathlib import Path
 
 import httpx
 
-from .models import DatasetOut, RecipeOut, RunOut
+from .models import AnnotationTaskOut, CurationOut, DatasetOut, QualityProfileOut, RecipeOut, RunOut
 
 
 class FoundryError(Exception):
@@ -41,6 +41,9 @@ class DataFoundry:
             trust_env=False,
         )
         self.datasets, self.recipes, self.runs = Datasets(self), Recipes(self), Runs(self)
+        self.quality_profiles = QualityProfiles(self)
+        self.curations = Curations(self)
+        self.annotations = Annotations(self)
 
     def request(self, method, path, body=None, *, idempotency_key=None):
         headers = {"Idempotency-Key": idempotency_key or uuid.uuid4().hex} if method == "POST" else {}
@@ -100,7 +103,11 @@ class Datasets:
             {
                 "dataset_id": dataset_id,
                 "filename": file.name,
-                "content_type": "application/x-ndjson",
+                "content_type": "image/png"
+                if file.suffix.lower() == ".png"
+                else "image/jpeg"
+                if file.suffix.lower() in {".jpg", ".jpeg"}
+                else "application/x-ndjson",
                 "bytes": len(data),
                 "sha256": hashlib.sha256(data).hexdigest(),
             },
@@ -116,8 +123,8 @@ class Datasets:
                 parts.append({"part_number": index + 1, "etag": result.headers["etag"]})
         return self.client.request("POST", f"/v1/uploads/{upload['id']}/complete", {"parts": parts})
 
-    def download(self, version_id: str, path: str | Path) -> Path:
-        created = self.client.request("POST", "/v1/exports", {"version_id": version_id, "format": "jsonl"})
+    def download(self, version_id: str, path: str | Path, *, format: str = "jsonl") -> Path:
+        created = self.client.request("POST", "/v1/exports", {"version_id": version_id, "format": format})
         ready = self.client.request("GET", f"/v1/exports/{created['id']}")
         output = Path(path)
         hasher = hashlib.sha256()
@@ -187,3 +194,183 @@ class Runs:
 
     def cancel(self, identifier: str):
         return self.client.request("POST", f"/v1/runs/{identifier}/cancel")
+
+
+class QualityProfiles:
+    def __init__(self, client):
+        self.client = client
+
+    def create(
+        self, *, name: str, modality: str, config: dict | None = None, idempotency_key=None
+    ) -> QualityProfileOut:
+        return QualityProfileOut.model_validate(
+            self.client.request(
+                "POST",
+                "/v1/quality-profiles",
+                {"name": name, "modality": modality, "config": config or {}},
+                idempotency_key=idempotency_key,
+            )
+        )
+
+    def get(self, identifier: str) -> QualityProfileOut:
+        return QualityProfileOut.model_validate(
+            self.client.request("GET", f"/v1/quality-profiles/{identifier}")
+        )
+
+    def list(self) -> Iterator[QualityProfileOut]:
+        yield from _pages(self.client, "/v1/quality-profiles", QualityProfileOut)
+
+
+def _pages(client, path, model):
+    next_path = path + ("&" if "?" in path else "?") + "limit=100"
+    while next_path:
+        result = client.request("GET", next_path)
+        yield from (model.model_validate(item) for item in result["items"])
+        next_path = (
+            path + ("&" if "?" in path else "?") + "limit=100&cursor=" + result["next_cursor"]
+            if result.get("next_cursor")
+            else None
+        )
+
+
+class Curations:
+    def __init__(self, client):
+        self.client = client
+
+    def create(
+        self,
+        *,
+        dataset_id: str,
+        profile_id: str,
+        name: str,
+        categories: list[str],
+        idempotency_key=None,
+        **kwargs,
+    ) -> CurationOut:
+        return CurationOut.model_validate(
+            self.client.request(
+                "POST",
+                "/v1/curations",
+                {
+                    "dataset_id": dataset_id,
+                    "profile_id": profile_id,
+                    "name": name,
+                    "categories": categories,
+                    **kwargs,
+                },
+                idempotency_key=idempotency_key,
+            )
+        )
+
+    def list(self, *, dataset_id: str | None = None) -> Iterator[CurationOut]:
+        path = "/v1/curations" + ("?dataset_id=" + dataset_id if dataset_id else "")
+        yield from _pages(self.client, path, CurationOut)
+
+    def get(self, identifier: str) -> CurationOut:
+        return CurationOut.model_validate(self.client.request("GET", f"/v1/curations/{identifier}"))
+
+    def update_card(self, identifier: str, *, expected_revision: int, data_card: dict) -> CurationOut:
+        return CurationOut.model_validate(
+            self.client.request(
+                "PATCH",
+                f"/v1/curations/{identifier}/data-card",
+                {"expected_revision": expected_revision, "data_card": data_card},
+            )
+        )
+
+    def freeze(
+        self, identifier: str, *, expected_revision: int, approved_for_publication: bool, idempotency_key=None
+    ) -> CurationOut:
+        return CurationOut.model_validate(
+            self.client.request(
+                "POST",
+                f"/v1/curations/{identifier}/freeze",
+                {
+                    "expected_revision": expected_revision,
+                    "approved_for_publication": approved_for_publication,
+                },
+                idempotency_key=idempotency_key,
+            )
+        )
+
+
+class Annotations:
+    def __init__(self, client):
+        self.client = client
+
+    def list(self, *, curation_id: str | None = None) -> Iterator[AnnotationTaskOut]:
+        path = "/v1/annotation-tasks" + ("?curation_id=" + curation_id if curation_id else "")
+        yield from _pages(self.client, path, AnnotationTaskOut)
+
+    def get(self, identifier: str) -> AnnotationTaskOut:
+        return AnnotationTaskOut.model_validate(
+            self.client.request("GET", f"/v1/annotation-tasks/{identifier}")
+        )
+
+    def assign(
+        self, identifier: str, *, expected_revision: int, user_id: str | None, idempotency_key=None
+    ) -> AnnotationTaskOut:
+        return self._post(
+            identifier,
+            "assign",
+            {"expected_revision": expected_revision, "user_id": user_id},
+            idempotency_key,
+        )
+
+    def review(
+        self,
+        identifier: str,
+        *,
+        expected_revision: int,
+        decision: str,
+        note: str,
+        annotation: dict | None = None,
+        idempotency_key=None,
+    ) -> AnnotationTaskOut:
+        return self._post(
+            identifier,
+            "decision",
+            {
+                "expected_revision": expected_revision,
+                "decision": decision,
+                "note": note,
+                "annotation": annotation,
+            },
+            idempotency_key,
+        )
+
+    def adjudicate(
+        self,
+        identifier: str,
+        *,
+        expected_revision: int,
+        decision: str,
+        note: str,
+        annotation: dict | None = None,
+        idempotency_key=None,
+    ) -> AnnotationTaskOut:
+        return self._post(
+            identifier,
+            "adjudicate",
+            {
+                "expected_revision": expected_revision,
+                "decision": decision,
+                "note": note,
+                "annotation": annotation,
+            },
+            idempotency_key,
+        )
+
+    def reopen(
+        self, identifier: str, *, expected_revision: int, note: str, idempotency_key=None
+    ) -> AnnotationTaskOut:
+        return self._post(
+            identifier, "reopen", {"expected_revision": expected_revision, "note": note}, idempotency_key
+        )
+
+    def _post(self, identifier, action, body, key):
+        return AnnotationTaskOut.model_validate(
+            self.client.request(
+                "POST", f"/v1/annotation-tasks/{identifier}/{action}", body, idempotency_key=key
+            )
+        )

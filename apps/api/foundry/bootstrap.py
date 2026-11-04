@@ -15,6 +15,24 @@ TEXT_SCHEMA = {
     },
 }
 
+IMAGE_SCHEMA = {
+    "type": "object",
+    "required": ["image"],
+    "properties": {
+        "image": {
+            "type": "object",
+            "required": ["width", "height", "artifact", "thumbnail", "dhash"],
+            "properties": {
+                "width": {"type": "integer", "minimum": 1},
+                "height": {"type": "integer", "minimum": 1},
+                "artifact": {"type": "object"},
+                "thumbnail": {"type": "object"},
+                "dhash": {"type": "string", "pattern": "^[a-f0-9]{16}$"},
+            },
+        }
+    },
+}
+
 
 def main():
     initialize()

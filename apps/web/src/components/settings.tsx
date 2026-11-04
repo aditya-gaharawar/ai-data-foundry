@@ -39,6 +39,9 @@ const scopes = [
   "webhooks:manage",
   "audit:read",
   "budgets:manage",
+  "annotations:manage",
+  "annotations:review",
+  "annotations:adjudicate",
 ];
 export function KeysPage() {
   const query = useResource<Page<Key>>("/api-keys");
@@ -628,9 +631,11 @@ export function MembersPage() {
                           })
                         }
                       >
-                        {["Admin", "Engineer", "Viewer"].map((value) => (
-                          <option key={value}>{value}</option>
-                        ))}
+                        {["Admin", "Engineer", "Labeler", "Viewer"].map(
+                          (value) => (
+                            <option key={value}>{value}</option>
+                          ),
+                        )}
                       </select>
                     )}
                   </td>
@@ -720,7 +725,7 @@ export function MembersPage() {
               value={role}
               onChange={(event) => setRole(event.target.value)}
             >
-              {["Engineer", "Viewer", "Admin"].map((value) => (
+              {["Engineer", "Labeler", "Viewer", "Admin"].map((value) => (
                 <option key={value}>{value}</option>
               ))}
             </select>

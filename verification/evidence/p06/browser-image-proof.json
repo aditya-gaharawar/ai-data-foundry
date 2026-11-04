@@ -1,0 +1,68 @@
+{
+  "dataset_path": "/datasets/ds_56ec5b40324a4dd4ae62eb1db480b241",
+  "curation_path": "/curation/cur_ebf7eeb12db34e768f0625b992b3316d",
+  "task_path": "/curation/tasks/ant_085728dc811b452182dba3a34d653dcf",
+  "reviewed_box": [
+    8,
+    6,
+    32,
+    24
+  ],
+  "exports": {
+    "coco": {
+      "sha256": "f2b640b8e7f7fe6c3e784fde92d75c1810278e08f6efdb5b112a05370309472b",
+      "files": [
+        "annotations.json",
+        "data-card.json",
+        "images/smp_94d8cc44d6d4c9407243c6ea7cc1c7b9.png"
+      ],
+      "annotations": {
+        "annotations": [
+          {
+            "area": 768,
+            "bbox": [
+              8,
+              6,
+              32,
+              24
+            ],
+            "category_id": 1,
+            "id": 1,
+            "image_id": 1,
+            "iscrowd": 0
+          }
+        ],
+        "categories": [
+          {
+            "id": 1,
+            "name": "object"
+          },
+          {
+            "id": 2,
+            "name": "other"
+          }
+        ],
+        "images": [
+          {
+            "file_name": "images/smp_94d8cc44d6d4c9407243c6ea7cc1c7b9.png",
+            "height": 48,
+            "id": 1,
+            "width": 64
+          }
+        ]
+      }
+    },
+    "yolo": {
+      "sha256": "4c35b61a00010edb4ce4765dbca0be6e0a1bfc9ab77c05d9cc3d9defc606f7d0",
+      "files": [
+        "data-card.json",
+        "data.yaml",
+        "images/smp_94d8cc44d6d4c9407243c6ea7cc1c7b9.png",
+        "labels/smp_94d8cc44d6d4c9407243c6ea7cc1c7b9.txt"
+      ],
+      "annotations": [
+        "0 0.375 0.375 0.5 0.5\n"
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+uv run ruff check apps/api packages/sdk-python scripts tests
+All checks passed!
+uv run ruff format --check apps/api packages/sdk-python scripts tests
+42 files already formatted
+pnpm typecheck
+$ pnpm --filter @datafoundry/web typecheck && pnpm --filter @datafoundry/sdk typecheck
+$ tsc --noEmit
+$ tsc --noEmit

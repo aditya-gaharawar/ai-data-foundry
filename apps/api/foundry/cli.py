@@ -10,9 +10,13 @@ app = typer.Typer(help="Workspace-local AI Data Foundry CLI")
 datasets = typer.Typer()
 runs = typer.Typer()
 recipes = typer.Typer()
+curations = typer.Typer(help="Curation sessions and quality profiles")
+annotations = typer.Typer(help="Human review queue and decisions")
 app.add_typer(datasets, name="datasets")
 app.add_typer(runs, name="runs")
 app.add_typer(recipes, name="recipes")
+app.add_typer(curations, name="curations")
+app.add_typer(annotations, name="annotations")
 
 
 def client():
@@ -67,9 +71,9 @@ def upload_dataset(dataset_id: str, path: Path):
 
 
 @datasets.command("export")
-def export_dataset(version_id: str, output: Path):
+def export_dataset(version_id: str, output: Path, format: str = "jsonl"):
     with client() as api:
-        typer.echo(str(api.datasets.download(version_id, output)))
+        typer.echo(str(api.datasets.download(version_id, output, format=format)))
 
 
 @recipes.command("validate")
@@ -109,3 +113,96 @@ def watch_run(run_id: str):
 def cancel_run(run_id: str):
     with client() as api:
         typer.echo(json.dumps(api.runs.cancel(run_id)))
+
+
+@curations.command("list")
+def list_curations():
+    with client() as api:
+        for value in api.curations.list():
+            typer.echo(value.model_dump_json())
+
+
+@curations.command("get")
+def get_curation(curation_id: str):
+    with client() as api:
+        typer.echo(api.curations.get(curation_id).model_dump_json())
+
+
+@curations.command("profiles")
+def list_profiles():
+    with client() as api:
+        for profile in api.quality_profiles.list():
+            typer.echo(profile.model_dump_json())
+
+
+@curations.command("create-profile")
+def create_profile(path: Path):
+    with client() as api:
+        typer.echo(api.quality_profiles.create(**json.loads(path.read_text())).model_dump_json())
+
+
+@curations.command("create")
+def create_curation(path: Path):
+    with client() as api:
+        typer.echo(api.curations.create(**json.loads(path.read_text())).model_dump_json())
+
+
+@curations.command("data-card")
+def update_card(curation_id: str, revision: int, path: Path):
+    with client() as api:
+        typer.echo(
+            api.curations.update_card(
+                curation_id, expected_revision=revision, data_card=json.loads(path.read_text())
+            ).model_dump_json()
+        )
+
+
+@curations.command("freeze")
+def freeze_curation(curation_id: str, revision: int, approve_publication: bool = False):
+    if not approve_publication:
+        raise typer.BadParameter("Review the data card and quality report, then use --approve-publication.")
+    with client() as api:
+        typer.echo(
+            api.curations.freeze(
+                curation_id, expected_revision=revision, approved_for_publication=True
+            ).model_dump_json()
+        )
+
+
+@annotations.command("list")
+def list_annotations(curation_id: str | None = None):
+    with client() as api:
+        for task in api.annotations.list(curation_id=curation_id):
+            typer.echo(task.model_dump_json())
+
+
+@annotations.command("get")
+def get_annotation(task_id: str):
+    with client() as api:
+        typer.echo(api.annotations.get(task_id).model_dump_json())
+
+
+@annotations.command("decision")
+def review_annotation(task_id: str, path: Path):
+    with client() as api:
+        typer.echo(api.annotations.review(task_id, **json.loads(path.read_text())).model_dump_json())
+
+
+@annotations.command("assign")
+def assign_annotation(task_id: str, revision: int, user_id: str):
+    with client() as api:
+        typer.echo(
+            api.annotations.assign(task_id, expected_revision=revision, user_id=user_id).model_dump_json()
+        )
+
+
+@annotations.command("adjudicate")
+def adjudicate_annotation(task_id: str, path: Path):
+    with client() as api:
+        typer.echo(api.annotations.adjudicate(task_id, **json.loads(path.read_text())).model_dump_json())
+
+
+@annotations.command("reopen")
+def reopen_annotation(task_id: str, revision: int, note: str):
+    with client() as api:
+        typer.echo(api.annotations.reopen(task_id, expected_revision=revision, note=note).model_dump_json())

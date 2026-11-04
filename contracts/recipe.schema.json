@@ -15,7 +15,7 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "node": {"type": "object", "additionalProperties": false, "required": ["id", "type", "config"], "properties": {"id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"}, "type": {"enum": ["ingest", "generate", "transform", "validate", "annotate", "simulate", "publish", "export"]}, "config": {"type": "object"}, "resource_requirements": {"type": "object"}}},
+    "node": {"type": "object", "additionalProperties": false, "required": ["id", "type", "config"], "properties": {"id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"}, "type": {"enum": ["ingest", "generate", "curate", "transform", "validate", "annotate", "simulate", "publish", "export"]}, "config": {"type": "object"}, "resource_requirements": {"type": "object"}}},
     "edge": {"type": "object", "additionalProperties": false, "required": ["from", "to"], "properties": {"from": {"type": "string"}, "to": {"type": "string"}}}
   },
   "$comment": "Schema checks shape only; DAG acyclicity, compatible I/O modalities, rights, limits and device capability must be validated server-side."

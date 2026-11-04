@@ -34,6 +34,7 @@ export type Version = {
   manifest: {
     quality: Quality;
     data_artifact: { bytes: number; sha256: string };
+    exports?: Record<string, unknown>;
     recipe_revision_id: string;
     policy: Record<string, unknown>;
     [key: string]: unknown;
@@ -202,10 +203,11 @@ export async function saveExport(
   call: ApiCall,
   versionId: string,
   organization: string,
+  format: "jsonl" | "coco" | "yolo" = "jsonl",
 ) {
   const created = await call<{ id: string }>("/exports", {
     method: "POST",
-    body: { version_id: versionId, format: "jsonl" },
+    body: { version_id: versionId, format },
   });
   const ready = await call<{ download_url: string }>(`/exports/${created.id}`);
   const result = await fetch(`/api${ready.download_url}`, {
@@ -213,10 +215,24 @@ export async function saveExport(
   });
   if (!result.ok)
     throw new Error("Export download failed. Refresh the grant and retry.");
-  const url = URL.createObjectURL(await result.blob());
+  const bytes = await result.arrayBuffer();
+  const checksum = Array.from(
+    new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+  )
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+  if (checksum !== result.headers.get("X-Content-SHA256"))
+    throw new Error(
+      "Export checksum verification failed. Request a new export and retry.",
+    );
+  const url = URL.createObjectURL(
+    new Blob([bytes], {
+      type: result.headers.get("Content-Type") || "application/octet-stream",
+    }),
+  );
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${versionId}.jsonl`;
+  link.download = `${versionId}.${format === "jsonl" ? "jsonl" : `${format}.zip`}`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

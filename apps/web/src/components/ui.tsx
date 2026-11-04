@@ -92,6 +92,9 @@ export function Status({ value }: { value: string }) {
     "COMPLETED",
     "DELIVERED",
     "PASS",
+    "ACCEPTED",
+    "ADJUDICATED",
+    "FROZEN",
   ].includes(value);
   const negative = [
     "FAILED",
@@ -195,7 +198,12 @@ export function PageHeader({
 }
 export function Loading() {
   return (
-    <div role="status" aria-label="Loading content" aria-busy="true" className="loading-state">
+    <div
+      role="status"
+      aria-label="Loading content"
+      aria-busy="true"
+      className="loading-state"
+    >
       <div className="skeleton" />
       <div className="skeleton" />
       <div className="skeleton" />

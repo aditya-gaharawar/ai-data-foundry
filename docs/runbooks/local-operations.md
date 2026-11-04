@@ -31,6 +31,8 @@ webhook encryption. Do not rotate it casually or copy it into public artifacts.
 Private Playwright traces may contain session material; publish screenshots and
 redacted evidence only. There are no production backups or incident SLA claims.
 
-P06 adds curation/review; P07 adds authorized model adapters; P08–P09 add verified
+P06 curation/review is implemented locally; follow `curation.md`. Quality profiles
+and review history are append-only; frozen sessions/tasks cannot be modified.
+P07 adds authorized model adapters; P08–P09 add verified
 compute/simulation; P10 adds evaluation; P11–P12 add enterprise, operations,
 backup/restore, load, security and release gates. Production remains disabled.

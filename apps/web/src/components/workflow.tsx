@@ -212,15 +212,46 @@ export function WorkflowEditor({ id }: { id: string }) {
     }
   }, [json]);
   const source = parsed?.nodes.find((node) =>
-    ["ingest", "generate"].includes(node.type),
+    ["ingest", "generate", "curate"].includes(node.type),
   );
   const sourceUpload = useResource<Upload>(
     `/uploads/${encodeURIComponent(String(source?.config.upload_id || "none"))}`,
     false,
     source?.type === "ingest" && Boolean(source.config.upload_id),
   );
+  const sourceCuration = useResource<{ dataset_id: string; name: string }>(
+    `/curations/${encodeURIComponent(String(source?.config.curation_id || "none"))}`,
+    false,
+    source?.type === "curate" && Boolean(source.config.curation_id),
+  );
+  const targetDataset = useResource<Dataset>(
+    `/datasets/${datasetId || "none"}`,
+    false,
+    Boolean(datasetId),
+  );
+  useEffect(() => {
+    if (
+      targetDataset.data?.modality === "image" &&
+      source?.type === "generate" &&
+      id === "new"
+    ) {
+      const copy = structuredClone(parsed!);
+      const node = copy.nodes.find((item) => item.id === source.id)!;
+      node.type = "ingest";
+      node.config = { upload_id: "" };
+      setJson(JSON.stringify(copy, null, 2));
+      setValidated(false);
+    }
+  }, [targetDataset.data?.modality, source, parsed, id]);
   useEffect(() => {
     if (targetInitialized || (id !== "new" && !loaded)) return;
+    if (source?.type === "curate") {
+      if (sourceCuration.data) {
+        setDatasetId(sourceCuration.data.dataset_id);
+        setTargetInitialized(true);
+      }
+      return;
+    }
     if (source?.type === "ingest" && source.config.upload_id) {
       if (sourceUpload.data) {
         setDatasetId(sourceUpload.data.dataset_id);
@@ -241,6 +272,7 @@ export function WorkflowEditor({ id }: { id: string }) {
     loaded,
     source,
     sourceUpload.data,
+    sourceCuration.data,
     datasets.data,
     existing.data?.project_id,
   ]);
@@ -259,7 +291,7 @@ export function WorkflowEditor({ id }: { id: string }) {
         id: node.id,
         position: { x: index * 205, y: 70 },
         data: {
-          label: `${String(index + 1).padStart(2, "0")}  ${node.type === "generate" ? "Generate text" : node.type === "ingest" ? "Ingest JSONL" : node.type === "validate" ? "Quality gates" : node.type === "publish" ? "Publish version" : "Export JSONL"}`,
+          label: `${String(index + 1).padStart(2, "0")}  ${node.type === "generate" ? "Generate text" : node.type === "ingest" ? "Ingest upload" : node.type === "curate" ? "Reviewed source" : node.type === "validate" ? "Quality gates" : node.type === "publish" ? "Publish version" : "Export JSONL"}`,
         },
         selected: selectedNode === node.id,
       })),
@@ -344,7 +376,13 @@ export function WorkflowEditor({ id }: { id: string }) {
         )}
       </PageHeader>
       <ErrorNotice
-        error={action.error || datasets.error || sourceUpload.error}
+        error={
+          action.error ||
+          datasets.error ||
+          sourceUpload.error ||
+          sourceCuration.error ||
+          targetDataset.error
+        }
       />
       {dirty && (
         <div className="notice">
@@ -462,6 +500,7 @@ export function WorkflowEditor({ id }: { id: string }) {
                 <span>Target dataset</span>
                 <select
                   value={datasetId}
+                  disabled={source?.type === "curate"}
                   onChange={(event) => {
                     setDatasetId(event.target.value);
                     setTargetInitialized(true);
@@ -474,6 +513,14 @@ export function WorkflowEditor({ id }: { id: string }) {
                   }}
                 >
                   <option value="">Select a dataset</option>
+                  {targetDataset.data &&
+                    !datasets.data?.items.some(
+                      (item) => item.id === datasetId,
+                    ) && (
+                      <option value={datasetId}>
+                        {targetDataset.data.name}
+                      </option>
+                    )}
                   {datasets.data?.items.map((dataset) => (
                     <option key={dataset.id} value={dataset.id}>
                       {dataset.name}
@@ -493,7 +540,7 @@ export function WorkflowEditor({ id }: { id: string }) {
                 <span>Source</span>
                 <select
                   value={source?.type || "generate"}
-                  disabled={!canWrite || !source}
+                  disabled={!canWrite || !source || source.type === "curate"}
                   onChange={(event) =>
                     update((value) => {
                       const node = value.nodes.find(
@@ -513,8 +560,16 @@ export function WorkflowEditor({ id }: { id: string }) {
                     })
                   }
                 >
-                  <option value="generate">Deterministic text generator</option>
-                  <option value="ingest">Uploaded JSONL</option>
+                  <option
+                    value="generate"
+                    disabled={targetDataset.data?.modality === "image"}
+                  >
+                    Deterministic text generator
+                  </option>
+                  <option value="ingest">Verified upload</option>
+                  {source?.type === "curate" && (
+                    <option value="curate">Frozen human-reviewed source</option>
+                  )}
                 </select>
               </label>
               {source?.type === "generate" ? (
@@ -553,6 +608,13 @@ export function WorkflowEditor({ id }: { id: string }) {
                       }
                     />
                   </label>
+                </div>
+              ) : source?.type === "curate" ? (
+                <div className="notice">
+                  <ShieldCheck size={14} />
+                  <Link href={`/curation/${source.config.curation_id}`}>
+                    {sourceCuration.data?.name || "Inspect approved curation"}
+                  </Link>
                 </div>
               ) : (
                 <label className="field">

@@ -10,6 +10,9 @@ errors with request IDs, and scope-denied views. No fixture KPIs are substituted
 | `/overview` | `/v1/overview`, projects and session | Open create dialog, project/theme/menu preferences | datasets:read; browser/a11y/empty-tenant proof |
 | `/datasets` | Paginated `/v1/datasets` with q/project/cursor | POST dataset | datasets:read/write; persisted create/search/cursor proof |
 | `/datasets/[id]` | Dataset, versions, sample pages and uploads | PATCH details, multipart create/complete, export | datasets:read/write; generation and real browser upload to version |
+| `/curation`, `/curation/new`, `/curation/[id]` | Sessions, source uploads/versions, quality, tasks | Create session, save data card, approve/freeze, prepare recipe/estimate and launch publication | annotations:manage and runs:execute for writes; real review-to-export browser proof |
+| `/curation/profiles` | Paginated immutable quality profiles | Create scoped profile | annotations:manage; actual persisted thresholds and dedupe evidence |
+| `/curation/tasks/[id]` | Source payload/private image, review history and eligible reviewers | Claim/assign, category/box edits, review/reject/adjudicate/reopen | annotations:review/manage/adjudicate; independent users, revision conflicts, keyboard and axe proof |
 | `/workflows`, `/workflows/new`, `/workflows/[id]` | Recipes/revisions, datasets, upload metadata and estimate | Validate, save immutable revision, launch | datasets:write and runs:execute; JSON/form/graph share a DSL and preserve target |
 | `/runs`, `/runs/[id]` | Runs, real polling, structured events | Cancel, retry, export; local log download/filter | datasets:read and runs:execute; durable recovery and keyboard-only proof |
 | `/settings/api-keys` | Scoped key metadata | Create/reveal once, revoke, copy | keys:manage; one-time/hash/scope/revocation proof |

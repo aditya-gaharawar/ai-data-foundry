@@ -1,0 +1,16 @@
+ Usage: datafoundry curations [OPTIONS] COMMAND [ARGS]...
+
+ Curation sessions and quality profiles
+
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ list                                                                         │
+│ get                                                                          │
+│ profiles                                                                     │
+│ create-profile                                                               │
+│ create                                                                       │
+│ data-card                                                                    │
+│ freeze                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────╯

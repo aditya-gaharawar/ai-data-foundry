@@ -1,12 +1,16 @@
 # AI Data Foundry
 
-A working local console and API for multi-user text datasets: create or upload,
+A working local console and API for multi-user text and image datasets: create or upload,
 run a durable pipeline, validate, publish an immutable version, export JSONL and
 verify a signed webhook through real local services.
 
+P06 adds quality profiles, exact/near duplicate cleaning, category/box annotation,
+independent reviews and adjudication, authored data cards, approved publication,
+and real COCO/YOLO image bundles. Follow [the curation guide](docs/runbooks/curation.md).
+
 The original V2 handoff remains in this repository. Its original README is in
 `docs/handoff/README.md`. Read `BUILD_LOG.md` for executed evidence and
-`verification/FEATURE_MATRIX.csv` for precise feature status. P06–P12 remain
+`verification/FEATURE_MATRIX.csv` for precise feature status. P07–P12 remain
 later phases; this is not a production release.
 
 ## Start
@@ -43,8 +47,8 @@ container topology but requires more disk and is unverified in this workspace.
 
 ## First dataset
 
-1. Sign in; create a text dataset and declare permitted source use.
-2. Upload JSONL or configure the deterministic text source in a workflow.
+1. Sign in; create a text or image dataset and declare permitted source use.
+2. Upload JSONL or PNG/JPEG, or configure the deterministic text source in a workflow.
 3. Save the workflow, review its estimate/budget and launch.
 4. Inspect real progress, logs, quality, samples and provenance.
 5. Export the published immutable version as verified JSONL.
@@ -122,8 +126,10 @@ Actions is configured, with no remote execution claimed until a repo is connecte
 ## Boundaries
 
 - UTF-8 text JSONL, at most 20 MiB and 10,000 records; inline JSON Schema.
+- PNG/JPEG uploads, at most 6 MP and 4096 pixels per edge; normalized private previews.
+- Local curation: 500 samples / 20 MiB; text categories and image boxes.
 - Linear typed recipes; no arbitrary code or general branching execution.
-- Blocking schema, integrity, exact duplicate and declared-rights checks.
+- Blocking schema, integrity, review, annotation, duplicate and declared-rights checks.
 - Authenticated, tenant-bound signed export grants.
 - Local users and user-owned scoped API keys; production identity deferred.
 - RustFS provides tested S3 storage because MinIO registries were unavailable.

@@ -21,6 +21,7 @@ from temporalio.client import Client as TemporalClient
 
 from . import schemas as s
 from .config import settings
+from .curation_api import register as register_curation
 from .db import now, session, uid
 from .dto import (
     DatasetOut,
@@ -36,9 +37,11 @@ from .dto import (
     WebhookOut,
 )
 from .errors import Problem
+from .media import prepare_image
 from .models import (
     ApiKey,
     Audit,
+    Curation,
     Dataset,
     Delivery,
     Export,
@@ -82,7 +85,7 @@ from .storage import read_artifact
 app = FastAPI(
     title="AI Data Foundry API",
     version="0.1.0",
-    description="Verified local text dataset lifecycle. External engines are unavailable.",
+    description="Local text/image dataset lifecycle, curation and human review. External engines are unavailable.",
     openapi_url="/v1/openapi.json",
     docs_url="/v1/docs",
     redoc_url=None,
@@ -107,7 +110,7 @@ app.add_middleware(
         "X-Organization-Id",
         "X-Request-Id",
     ],
-    expose_headers=["X-Request-Id"],
+    expose_headers=["X-Request-Id", "X-Content-SHA256", "Content-Disposition"],
 )
 DB = Annotated[DBSession, Depends(session)]
 Auth = Annotated[Principal, Depends(principal)]
@@ -564,10 +567,24 @@ def start_upload(body: s.UploadCreate, request: Request, p: Auth, db: DB):
     target = get(db, Dataset, body.dataset_id, p.organization_id)
     if target.archived:
         raise Problem(409, "DATASET_ARCHIVED", "Restore the dataset before uploading.")
-    if not body.filename.lower().endswith(".jsonl") or "/" in body.filename or "\\" in body.filename:
-        raise Problem(422, "UNSUPPORTED_FILE", "Upload a JSONL filename without directory components.")
+    image_type = body.content_type in {"image/png", "image/jpeg"}
+    suffixes = (
+        (".png",) if body.content_type == "image/png" else (".jpg", ".jpeg") if image_type else (".jsonl",)
+    )
+    if (
+        not body.filename.lower().endswith(suffixes)
+        or "/" in body.filename
+        or "\\" in body.filename
+        or any(ord(char) < 32 for char in body.filename)
+        or (target.modality == "image") != image_type
+    ):
+        raise Problem(
+            422,
+            "UNSUPPORTED_FILE",
+            "Use a JSONL file for text or a PNG/JPEG for an image dataset; directory components are forbidden.",
+        )
     upload_id = uid("upl")
-    key = f"org/{p.organization_id}/datasets/{target.id}/sources/{upload_id}.jsonl"
+    key = f"org/{p.organization_id}/datasets/{target.id}/sources/{upload_id}{suffixes[0]}"
     multipart = s3client().create_multipart_upload(
         Bucket=settings().s3_bucket, Key=key, ContentType=body.content_type
     )
@@ -668,7 +685,11 @@ def complete_upload(upload_id: str, body: s.UploadComplete, request: Request, p:
             422, "UPLOAD_CHECKSUM_MISMATCH", "Uploaded bytes do not match the declared size and SHA-256."
         )
     try:
-        samples = parse_jsonl(raw)
+        if record.content_type.startswith("image/"):
+            record.media = prepare_image(raw, record.content_type, p.organization_id)
+            samples = [{"image": record.media}]
+        else:
+            samples = parse_jsonl(raw)
     except Problem as error:
         record.status, record.error = "REJECTED", error.message
         db.commit()
@@ -691,6 +712,20 @@ def abort_upload(upload_id: str, request: Request, p: Auth, db: DB):
     audit(db, p, request, "upload.aborted", record.id)
     db.commit()
     return public(record)
+
+
+@app.get("/v1/uploads/{upload_id}/media", tags=["Uploads"])
+def upload_media(upload_id: str, p: Auth, db: DB, thumbnail: bool = True):
+    p.require("datasets:read")
+    record = get(db, Upload, upload_id, p.organization_id)
+    if record.status != "COMPLETED" or not record.media:
+        raise Problem(404, "NOT_FOUND", "Verified image preview not found.")
+    data = read_artifact(record.media["thumbnail" if thumbnail else "artifact"])
+    return Response(
+        data,
+        media_type="image/png",
+        headers={"X-Content-SHA256": digest(data), "Content-Security-Policy": "default-src 'none'; sandbox"},
+    )
 
 
 @app.post("/v1/recipes/validate", tags=["Recipes"])
@@ -750,6 +785,8 @@ def create_recipe(body: s.RecipeCreate, request: Request, p: Auth, db: DB):
     order = compile_recipe(body.definition)
     if order[0]["type"] == "ingest":
         get(db, Upload, order[0]["config"]["upload_id"], p.organization_id)
+    elif order[0]["type"] == "curate":
+        get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
     record = Recipe(
         id=uid("rcp"),
         organization_id=p.organization_id,
@@ -777,7 +814,11 @@ def revise_recipe(recipe_id: str, body: dict, request: Request, p: Auth, db: DB)
     if cached := replay(db, p, request, body):
         return cached
     get(db, Recipe, recipe_id, p.organization_id)
-    compile_recipe(body)
+    order = compile_recipe(body)
+    if order[0]["type"] == "ingest":
+        get(db, Upload, order[0]["config"]["upload_id"], p.organization_id)
+    elif order[0]["type"] == "curate":
+        get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
     record = RecipeRevision(
         id=uid("rev"),
         organization_id=p.organization_id,
@@ -795,6 +836,11 @@ def estimate(db, p, revision):
     order = compile_recipe(revision.definition)
     if order[0]["type"] == "generate":
         count = GenerateConfig.model_validate(order[0]["config"]).count
+    elif order[0]["type"] == "curate":
+        source = get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
+        if source.state != "FROZEN":
+            raise Problem(409, "CURATION_NOT_FROZEN", "Complete and approve human review before launching.")
+        count = source.quality["accepted"]
     else:
         source = get(db, Upload, order[0]["config"]["upload_id"], p.organization_id)
         if source.status != "COMPLETED":
@@ -842,10 +888,22 @@ def submit_run(body: s.RunCreate, request: Request, p: Auth, db: DB):
         )
     count, cost = estimate(db, p, revision)
     order = compile_recipe(revision.definition)
+    if order[0]["type"] == "generate" and target.modality != "text":
+        raise Problem(
+            422,
+            "CAPABILITY_UNAVAILABLE",
+            "The deterministic generator produces text only. Upload real images and curate them.",
+        )
     if order[0]["type"] == "ingest":
         upload = get(db, Upload, order[0]["config"]["upload_id"], p.organization_id)
         if upload.dataset_id != target.id:
             raise Problem(422, "SOURCE_DATASET_MISMATCH", "The upload must belong to the target dataset.")
+    elif order[0]["type"] == "curate":
+        source = get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
+        if source.dataset_id != target.id:
+            raise Problem(
+                422, "SOURCE_DATASET_MISMATCH", "The frozen curation must belong to the target dataset."
+            )
     budget = int(body.max_budget_usd * 1_000_000)
     recipe_budget = int(
         __import__("decimal").Decimal(str(revision.definition["budget"]["maximum"])) * 1_000_000
@@ -1035,6 +1093,24 @@ def samples(
     }
 
 
+@app.get("/v1/datasets/{dataset_id}/versions/{version_id}/samples/{sample_id}/image", tags=["Versions"])
+def sample_image(dataset_id: str, version_id: str, sample_id: str, p: Auth, db: DB):
+    p.require("datasets:read")
+    version = get(db, Version, version_id, p.organization_id)
+    if version.dataset_id != dataset_id or version.manifest.get("modality") != "image":
+        raise Problem(404, "NOT_FOUND", "Image not found.")
+    values = parse_jsonl(read_artifact(version.manifest["data_artifact"]))
+    sample = next((value for value in values if value["sample_id"] == sample_id), None)
+    if not sample:
+        raise Problem(404, "NOT_FOUND", "Image not found.")
+    data = read_artifact(sample["payload"]["image"]["artifact"])
+    return Response(
+        data,
+        media_type="image/png",
+        headers={"X-Content-SHA256": digest(data), "Content-Security-Policy": "default-src 'none'; sandbox"},
+    )
+
+
 @app.post("/v1/exports", tags=["Exports"], response_model=ExportOut, status_code=202)
 def create_export(body: s.ExportCreate, request: Request, p: Auth, db: DB):
     p.require("datasets:read")
@@ -1043,7 +1119,15 @@ def create_export(body: s.ExportCreate, request: Request, p: Auth, db: DB):
     version = get(db, Version, body.version_id, p.organization_id)
     if version.manifest["policy"].get("allowed_training_use") is not True:
         raise Problem(403, "POLICY_BLOCKED", "The published version policy forbids this export.")
-    record = Export(id=uid("exp"), organization_id=p.organization_id, version_id=version.id)
+    if body.format != "jsonl" and body.format not in version.manifest.get("exports", {}):
+        raise Problem(
+            422,
+            "EXPORT_FORMAT_UNAVAILABLE",
+            "COCO/YOLO require an image version published from approved box annotations.",
+        )
+    record = Export(
+        id=uid("exp"), organization_id=p.organization_id, version_id=version.id, format=body.format
+    )
     db.add(record)
     db.flush()
     emit(db, p.organization_id, "export.ready", record.id, {"export_id": record.id, "version_id": version.id})
@@ -1077,14 +1161,19 @@ def download_export(export_id: str, grant: str, request: Request, p: Auth, db: D
     ):
         raise Problem(403, "INVALID_GRANT", "This signed download belongs to another principal.")
     version = get(db, Version, record.version_id, p.organization_id)
-    data = read_artifact(version.manifest["data_artifact"])
+    artifact = (
+        version.manifest["data_artifact"]
+        if record.format == "jsonl"
+        else version.manifest["exports"][record.format]
+    )
+    data = read_artifact(artifact)
     audit(db, p, request, "export.downloaded", record.id)
     db.commit()
     return Response(
         data,
-        media_type="application/x-ndjson",
+        media_type="application/x-ndjson" if record.format == "jsonl" else "application/zip",
         headers={
-            "Content-Disposition": f'attachment; filename="{version.dataset_id}-v{version.number}.jsonl"',
+            "Content-Disposition": f'attachment; filename="{version.dataset_id}-v{version.number}.{record.format if record.format == "jsonl" else record.format + ".zip"}"',
             "X-Content-SHA256": digest(data),
         },
     )
@@ -1339,8 +1428,17 @@ def compute_pools(p: Auth, db: DB):
                 "id": "local-cpu",
                 "name": "Local CPU",
                 "status": "READY" if active else "UNAVAILABLE",
-                "capabilities": ["deterministic.text@1", "ingest.jsonl@1", "quality.text@1"],
+                "capabilities": [
+                    "deterministic.text@1",
+                    "ingest.jsonl@1",
+                    "ingest.image@1",
+                    "quality.text@1",
+                    "curation.human@1",
+                ],
                 "last_heartbeat": heartbeat.seen_at.isoformat() if heartbeat else None,
             }
         ]
     }
+
+
+register_curation(app)

@@ -93,6 +93,7 @@ class Upload(TenantRecord, Base):
     status: Mapped[str] = mapped_column(String(30), default="UPLOADING")
     sample_count: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str | None] = mapped_column(Text)
+    media: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
 
 
 class Recipe(TenantRecord, Base):
@@ -221,6 +222,60 @@ class RateLimit(Base):
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     count: Mapped[int] = mapped_column(Integer)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class QualityProfile(TenantRecord, Base):
+    __tablename__ = "quality_profiles"
+    name: Mapped[str] = mapped_column(String(160))
+    modality: Mapped[str] = mapped_column(String(30))
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB)
+
+
+class Curation(TenantRecord, Base):
+    __tablename__ = "curations"
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"), index=True)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("quality_profiles.id"))
+    source_version_id: Mapped[str | None] = mapped_column(ForeignKey("dataset_versions.id"))
+    name: Mapped[str] = mapped_column(String(160))
+    categories: Mapped[list[str]] = mapped_column(JSONB)
+    required_reviews: Mapped[int] = mapped_column(Integer, default=2)
+    source_artifact: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    dedupe_report: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    data_card: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    state: Mapped[str] = mapped_column(String(30), default="OPEN")
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    quality: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    frozen_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    frozen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AnnotationTask(TenantRecord, Base):
+    __tablename__ = "annotation_tasks"
+    __table_args__ = (UniqueConstraint("curation_id", "sample_index"),)
+    curation_id: Mapped[str] = mapped_column(ForeignKey("curations.id"), index=True)
+    sample_index: Mapped[int] = mapped_column(Integer)
+    source_sample_id: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(30), default="NEW", index=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    round: Mapped[int] = mapped_column(Integer, default=1)
+    assigned_to: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    annotation: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    accepted: Mapped[bool | None] = mapped_column(Boolean)
+    excluded_reason: Mapped[str | None] = mapped_column(Text)
+
+
+class AnnotationReview(TenantRecord, Base):
+    __tablename__ = "annotation_reviews"
+    __table_args__ = (UniqueConstraint("task_id", "task_revision"),)
+    task_id: Mapped[str] = mapped_column(ForeignKey("annotation_tasks.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    api_key_id: Mapped[str | None] = mapped_column(ForeignKey("api_keys.id"))
+    round: Mapped[int] = mapped_column(Integer)
+    task_revision: Mapped[int] = mapped_column(Integer)
+    decision: Mapped[str] = mapped_column(String(30))
+    annotation: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    note: Mapped[str] = mapped_column(Text)
 
 
 # Enforce the tenant component of every resource reference at the database layer.

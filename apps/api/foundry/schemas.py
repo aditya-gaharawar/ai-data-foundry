@@ -1,9 +1,9 @@
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .bootstrap import TEXT_SCHEMA
+from .bootstrap import IMAGE_SCHEMA, TEXT_SCHEMA
 
 
 class Strict(BaseModel):
@@ -19,9 +19,15 @@ class DatasetCreate(Strict):
     project_id: str
     name: str = Field(min_length=1, max_length=160)
     description: str = Field(default="", max_length=4000)
-    modality: Literal["text"] = "text"
+    modality: Literal["text", "image"] = "text"
     schema_definition: dict = Field(default_factory=lambda: TEXT_SCHEMA.copy(), alias="schema")
     policy: dict = Field(default_factory=lambda: {"allowed_training_use": False})
+
+    @model_validator(mode="after")
+    def modality_schema(self):
+        if self.modality == "image" and "schema_definition" not in self.model_fields_set:
+            self.schema_definition = IMAGE_SCHEMA.copy()
+        return self
 
 
 class DatasetPatch(Strict):
@@ -33,7 +39,9 @@ class DatasetPatch(Strict):
 class UploadCreate(Strict):
     dataset_id: str
     filename: str = Field(min_length=1, max_length=240)
-    content_type: Literal["application/x-ndjson", "application/jsonl", "text/plain"]
+    content_type: Literal[
+        "application/x-ndjson", "application/jsonl", "text/plain", "image/png", "image/jpeg"
+    ]
     bytes: int = Field(ge=1, le=20 * 1024 * 1024)
     sha256: str = Field(pattern="^[a-f0-9]{64}$")
 
@@ -68,11 +76,11 @@ class MemberCreate(Strict):
     email: str = Field(min_length=3, max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     name: str = Field(min_length=1, max_length=160)
     password: str = Field(min_length=12, max_length=200)
-    role: Literal["Admin", "Engineer", "Viewer"] = "Engineer"
+    role: Literal["Admin", "Engineer", "Labeler", "Viewer"] = "Engineer"
 
 
 class MemberPatch(Strict):
-    role: Literal["Admin", "Engineer", "Viewer"]
+    role: Literal["Admin", "Engineer", "Labeler", "Viewer"]
 
 
 class WebhookCreate(Strict):
@@ -93,7 +101,7 @@ class WebhookCreate(Strict):
 
 class ExportCreate(Strict):
     version_id: str
-    format: Literal["jsonl"] = "jsonl"
+    format: Literal["jsonl", "coco", "yolo"] = "jsonl"
 
 
 class BudgetPatch(Strict):

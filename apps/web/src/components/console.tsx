@@ -15,6 +15,7 @@ import {
   KeyRound,
   Layers3,
   LayoutDashboard,
+  ListChecks,
   LogOut,
   Menu,
   Moon,
@@ -50,6 +51,13 @@ import {
 } from "./data-pages";
 import { WorkflowEditor, WorkflowsPage } from "./workflow";
 import {
+  AnnotationTaskPage,
+  CreateCurationPage,
+  CurationDetail,
+  CurationsPage,
+  QualityProfilesPage,
+} from "./curation-pages";
+import {
   ApiDocsPage,
   AuditPage,
   KeysPage,
@@ -67,6 +75,7 @@ const navigation = [
     group: "WORKSPACE",
   },
   { label: "Datasets", href: "/datasets", icon: Database },
+  { label: "Curation", href: "/curation", icon: ListChecks },
   { label: "Workflows", href: "/workflows", icon: GitBranch },
   { label: "Runs", href: "/runs", icon: Activity },
   {
@@ -423,6 +432,19 @@ function Workspace({
     ) : (
       <DatasetsPage onCreate={() => setCreate(true)} />
     );
+  else if (path[0] === "curation")
+    page =
+      path[1] === "profiles" ? (
+        <QualityProfilesPage />
+      ) : path[1] === "new" ? (
+        <CreateCurationPage />
+      ) : path[1] === "tasks" && path[2] ? (
+        <AnnotationTaskPage id={path[2]} />
+      ) : path[1] ? (
+        <CurationDetail id={path[1]} />
+      ) : (
+        <CurationsPage />
+      );
   else if (path[0] === "workflows")
     page = path[1] ? <WorkflowEditor id={path[1]} /> : <WorkflowsPage />;
   else if (path[0] === "runs")
@@ -473,7 +495,12 @@ function Workspace({
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
-        <aside className="sidebar desktop-sidebar">{sidebar}</aside>
+        <aside
+          className="sidebar desktop-sidebar"
+          aria-label="Workspace navigation"
+        >
+          {sidebar}
+        </aside>
         <div className="main-wrap">
           <header className="topbar">
             <div className="breadcrumbs">
@@ -567,7 +594,9 @@ function Workspace({
           description="Navigate your workspace"
           className="mobile-menu"
         >
-          <aside className="sidebar">{sidebar}</aside>
+          <aside className="sidebar" aria-label="Workspace navigation">
+            {sidebar}
+          </aside>
         </Modal>
         <CommandPalette open={palette} setOpen={setPalette} items={allowed} />
         <CreateDataset open={create} setOpen={setCreate} />
@@ -612,6 +641,7 @@ function CreateDataset({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [rights, setRights] = useState(false);
+  const [modality, setModality] = useState("text");
   const [selected, setSelected] = useState("");
   const action = useAction();
   return (
@@ -631,7 +661,7 @@ function CreateDataset({
                 name,
                 description,
                 project_id: selected || project,
-                modality: "text",
+                modality,
                 policy: {
                   origin: "local",
                   license: "user-declared-local",
@@ -689,8 +719,14 @@ function CreateDataset({
           </label>
           <label className="field">
             <span>Modality</span>
-            <input readOnly value="Text · JSONL" aria-label="Modality" />
-            <small>Additional modalities require later engines.</small>
+            <select
+              value={modality}
+              onChange={(event) => setModality(event.target.value)}
+              aria-label="Modality"
+            >
+              <option value="text">Text · JSONL</option>
+              <option value="image">Image · PNG/JPEG</option>
+            </select>
           </label>
         </div>
         <label className="check-field">

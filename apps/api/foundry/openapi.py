@@ -17,6 +17,13 @@ def enrich(schema):
         "create_export",
         "create_project",
         "create_member",
+        "create_quality_profile",
+        "create_curation",
+        "freeze_curation",
+        "assign_annotation",
+        "review_annotation",
+        "adjudicate_annotation",
+        "reopen_annotation",
     }
     for path, methods in schema["paths"].items():
         for method, operation in methods.items():

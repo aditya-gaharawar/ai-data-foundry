@@ -4,7 +4,7 @@ Core Shell,Organization/workspace switcher,P0,INTEGRATED,,/overview,AT-002,evide
 Core Shell,Responsive left navigation,P0,TESTED,,/overview,AT-003,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
 Core Shell,Command palette keyboard shortcuts,P0,TESTED,,/overview,AT-004,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
 Core Shell,Light/dark theme persistence,P0,TESTED,,/overview,AT-005,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Core Shell,Notifications center,P1,NOT_STARTED,,,AT-006,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Core Shell,Notifications center,P1,NOT_STARTED,,,AT-006,,Deferred to later handoff phases; not implemented or advertised as available.
 Core Shell,Breadcrumbs and global search,P1,TESTED,,/overview,AT-007,evidence/VERIFICATION.md,Navigation and organization-scoped dataset search; no search across unimplemented modules.
 Core Shell,Responsive skeleton empty error states,P1,TESTED,,/overview,AT-008,evidence/VERIFICATION.md,Real loading/error states and second-tenant empty screenshots; no fabricated data.
 Datasets,Create dataset,P0,TESTED,/v1/datasets,/datasets; /datasets/[id],AT-009,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
@@ -12,58 +12,58 @@ Datasets,List/filter/search datasets,P0,TESTED,/v1/datasets,/datasets; /datasets
 Datasets,Dataset detail and version list,P0,TESTED,/v1/datasets/{id}/versions,/datasets; /datasets/[id],AT-011,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
 Datasets,Upload signed multipart file,P0,TESTED,/v1/uploads,/datasets; /datasets/[id],AT-012,evidence/VERIFICATION.md,"Real multi-part >5 MiB SDK upload plus browser S3/CORS upload, SHA-256 completion and publication."
 Datasets,Upload progress/abort/retry,P0,INTEGRATED,/v1/uploads/{id}/abort,/datasets; /datasets/[id],AT-013,evidence/VERIFICATION.md,Browser progress and fresh-session retry; API abort implemented; no browser abort button.
-Datasets,Safe preview of JSONL/image/media,P1,INTEGRATED,/v1/datasets/{id}/samples,/datasets; /datasets/[id],AT-014,evidence/VERIFICATION.md,JSONL preview and HTML escaping verified; image/audio/video preview deferred.
-Datasets,Import licensed external source,P1,NOT_STARTED,,,AT-015,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Datasets,Safe preview of JSONL/image/media,P1,INTEGRATED,/v1/datasets/{id}/samples; /v1/uploads/{id}/media,/datasets/[id]; /curation/tasks/[id],AT-014,evidence/p06/VERIFICATION.md,JSONL escaping and authenticated decoded PNG/JPEG preview verified; audio/video preview remains deferred.
+Datasets,Import licensed external source,P1,NOT_STARTED,,,AT-015,,Deferred to later handoff phases; not implemented or advertised as available.
 Datasets,Create immutable dataset version,P1,TESTED,/v1/datasets/{id}/versions,/datasets; /datasets/[id],AT-016,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Datasets,Compare dataset versions,P1,NOT_STARTED,,,AT-017,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Datasets,Compare dataset versions,P1,NOT_STARTED,,,AT-017,,Deferred to later handoff phases; not implemented or advertised as available.
 Datasets,Artifact checksum and manifest,P1,TESTED,/v1/datasets/{id}/versions/{vid}/manifest,/datasets; /datasets/[id],AT-018,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Datasets,Data cards and provenance,P1,INTEGRATED,,/datasets; /datasets/[id],AT-019,evidence/VERIFICATION.md,Immutable policy/source/recipe manifests and lineage JSON; full data-card authoring deferred.
+Datasets,Data cards and provenance,P1,TESTED,/v1/curations/{id}/data-card; /v1/curations/{id}/freeze,/curation/[id]; /datasets/[id],AT-019,evidence/p06/VERIFICATION.md,"Authored text/image data cards, source/policy evidence, immutable approval and version provenance; legal ownership is user-declared."
 Datasets,Download signed dataset export,P1,TESTED,/v1/exports,/datasets; /datasets/[id],AT-020,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Datasets,Retention/delete governed workflow,P1,NOT_STARTED,,,AT-021,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Datasets,Retention/delete governed workflow,P1,NOT_STARTED,,,AT-021,,Deferred to later handoff phases; not implemented or advertised as available.
 Generation,Generate structured text,P1,INTEGRATED,,/workflows/new,AT-022,evidence/VERIFICATION.md,Deterministic arithmetic text only; no model or teacher inference.
-Generation,Authorized teacher connector,P1,NOT_STARTED,,,AT-023,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Generation,Authorized teacher connector,P1,NOT_STARTED,,,AT-023,,Deferred to later handoff phases; not implemented or advertised as available.
 Generation,Structured validation executor,P1,TESTED,/v1/runs,/workflows/new,AT-024,evidence/VERIFICATION.md,CPU JSON Schema validator; no model-based factuality claims.
-Generation,Provider rights and license gate,P1,NOT_STARTED,,,AT-025,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Generation,Provider connection test,P1,NOT_STARTED,,,AT-026,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Generation,Provider rights and license gate,P1,NOT_STARTED,,,AT-025,,Deferred to later handoff phases; not implemented or advertised as available.
+Generation,Provider connection test,P1,NOT_STARTED,,,AT-026,,Deferred to later handoff phases; not implemented or advertised as available.
 Generation,Batch cost estimate and reservation,P1,TESTED,/v1/recipes/{id}/estimate,/workflows/new,AT-027,evidence/VERIFICATION.md,"Nonbillable local rate card, reservations and measured persisted samples; external cost zero."
 Generation,Text sample deduplication,P1,TESTED,/v1/runs,/workflows/new,AT-028,evidence/VERIFICATION.md,Exact text content hash duplication checks; semantic diversity deferred.
-Generation,Generated image pipeline,P1,NOT_STARTED,,,AT-029,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Generation,Audio data pipeline,P1,NOT_STARTED,,,AT-030,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Generation,Video data pipeline,P1,NOT_STARTED,,,AT-031,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Generation,Multimodal alignment validation,P1,NOT_STARTED,,,AT-032,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Blender scene recipe,P1,NOT_STARTED,,,AT-033,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Blender headless worker,P1,NOT_STARTED,,,AT-034,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Scene asset library and license,P1,NOT_STARTED,,,AT-035,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Environment randomization,P2,NOT_STARTED,,,AT-036,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Isaac Sim compatible worker check,P2,NOT_STARTED,,,AT-037,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Isaac Sim synchronized sensor capture,P2,NOT_STARTED,,,AT-038,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Isaac Lab trajectory capture,P2,NOT_STARTED,,,AT-039,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Robotics episode and observation preview,P2,NOT_STARTED,,,AT-040,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Simulation,Sim-to-real distribution comparison,P2,NOT_STARTED,,,AT-041,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,Annotation task queue,P1,NOT_STARTED,,,AT-042,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,Manual label editor,P1,NOT_STARTED,,,AT-043,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,Machine label suggestions,P1,NOT_STARTED,,,AT-044,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,Reviewer assign/accept/reject,P1,NOT_STARTED,,,AT-045,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,Consensus and adjudication,P1,NOT_STARTED,,,AT-046,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,COCO/YOLO export,P1,NOT_STARTED,,,AT-047,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Annotation,Label correction audit,P1,NOT_STARTED,,,AT-048,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Quality,Quality policy builder,P0,INTEGRATED,,/datasets/[id]; /runs/[id],AT-049,evidence/VERIFICATION.md,Recipe blocking thresholds only; full quality-profile management deferred.
+Generation,Generated image pipeline,P1,NOT_STARTED,,,AT-029,,Deferred to later handoff phases; not implemented or advertised as available.
+Generation,Audio data pipeline,P1,NOT_STARTED,,,AT-030,,Deferred to later handoff phases; not implemented or advertised as available.
+Generation,Video data pipeline,P1,NOT_STARTED,,,AT-031,,Deferred to later handoff phases; not implemented or advertised as available.
+Generation,Multimodal alignment validation,P1,NOT_STARTED,,,AT-032,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Blender scene recipe,P1,NOT_STARTED,,,AT-033,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Blender headless worker,P1,NOT_STARTED,,,AT-034,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Scene asset library and license,P1,NOT_STARTED,,,AT-035,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Environment randomization,P2,NOT_STARTED,,,AT-036,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Isaac Sim compatible worker check,P2,NOT_STARTED,,,AT-037,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Isaac Sim synchronized sensor capture,P2,NOT_STARTED,,,AT-038,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Isaac Lab trajectory capture,P2,NOT_STARTED,,,AT-039,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Robotics episode and observation preview,P2,NOT_STARTED,,,AT-040,,Deferred to later handoff phases; not implemented or advertised as available.
+Simulation,Sim-to-real distribution comparison,P2,NOT_STARTED,,,AT-041,,Deferred to later handoff phases; not implemented or advertised as available.
+Annotation,Annotation task queue,P1,TESTED,/v1/annotation-tasks,/curation; /curation/[id],AT-042,evidence/p06/VERIFICATION.md,"Paginated tenant-scoped review queue, status and assignment filters; sessions limited to 500 source samples."
+Annotation,Manual label editor,P1,TESTED,/v1/annotation-tasks/{id}/decision,/curation/tasks/[id],AT-043,evidence/p06/VERIFICATION.md,"Persisted text category and pixel box editor, pointer drawing and numeric fields; advanced label types deferred."
+Annotation,Machine label suggestions,P1,NOT_STARTED,,,AT-044,evidence/p06/VERIFICATION.md,Machine suggestions await P07 licensed model-provider adapters; no suggestions or model confidence are fabricated.
+Annotation,Reviewer assign/accept/reject,P1,TESTED,/v1/annotation-tasks/{id}/assign; /v1/annotation-tasks/{id}/decision,/curation/tasks/[id],AT-045,evidence/p06/VERIFICATION.md,"Independent Labeler accounts, fresh role/scope checks, assignments, accept/reject decisions and rejection before publication."
+Annotation,Consensus and adjudication,P1,TESTED,/v1/annotation-tasks/{id}/adjudicate; /v1/annotation-tasks/{id}/reopen,/curation/tasks/[id]; /curation/[id],AT-046,evidence/p06/VERIFICATION.md,"Two independent users by default, latest vote per user/round, agreement denominator and independent administrator adjudication; explicit single-review policy supported."
+Annotation,COCO/YOLO export,P1,TESTED,/v1/exports,/datasets/[id],AT-047,evidence/p06/VERIFICATION.md,Real COCO pixel and YOLO normalized box ZIP bundles include matching decoded images and data card; signed tenant/user downloads verify SHA-256.
+Annotation,Label correction audit,P1,TESTED,/v1/annotation-tasks/{id}; /v1/audit-events,/curation/tasks/[id]; /settings/audit,AT-048,evidence/p06/VERIFICATION.md,"Append-only correction history with user/key identity, timestamp, round and expected revision; frozen evidence rejects database mutation."
+Quality,Quality policy builder,P0,TESTED,/v1/quality-profiles,/curation/profiles; /curation/[id],AT-049,evidence/p06/VERIFICATION.md,"Immutable quality profiles enforce acceptance, count, duplication, annotation, review coverage and data-card gates in local curation."
 Quality,Format/schema gate,P0,TESTED,/v1/runs,/datasets/[id]; /runs/[id],AT-050,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Quality,PII and safety screening,P1,NOT_STARTED,,,AT-051,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Quality,Exact and near dedupe,P1,INTEGRATED,,/datasets/[id]; /runs/[id],AT-052,evidence/VERIFICATION.md,Exact dedupe gate implemented; near/semantic dedupe deferred.
-Quality,Contamination/holdout checks,P1,NOT_STARTED,,,AT-053,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Quality,Dataset distribution charts,P1,NOT_STARTED,,,AT-054,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Quality,Reject publish on failed quality,P1,TESTED,/v1/runs,/datasets/[id]; /runs/[id],AT-055,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Compute,Register compute pool,P0,NOT_STARTED,,,AT-056,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Compute,Private outbound-only agent,P0,NOT_STARTED,,,AT-057,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Quality,PII and safety screening,P1,NOT_STARTED,,,AT-051,,Deferred to later handoff phases; not implemented or advertised as available.
+Quality,Exact and near dedupe,P1,TESTED,/v1/curations,/curation/[id],AT-052,evidence/p06/VERIFICATION.md,Reproducible canonical JSON/normalized PNG exact hashes; bounded text trigram Jaccard and image dHash near matches; semantic equivalence not claimed.
+Quality,Contamination/holdout checks,P1,NOT_STARTED,,,AT-053,,Deferred to later handoff phases; not implemented or advertised as available.
+Quality,Dataset distribution charts,P1,NOT_STARTED,,,AT-054,,Deferred to later handoff phases; not implemented or advertised as available.
+Quality,Reject publish on failed quality,P1,TESTED,/v1/runs; /v1/curations/{id}/freeze,/runs/[id]; /curation/[id],AT-055,evidence/p06/VERIFICATION.md,"Core schema/duplicate failures and P06 incomplete reviews, invalid accepted payloads or bad annotations prevent publication; rejected rows are removed."
+Compute,Register compute pool,P0,NOT_STARTED,,,AT-056,,Deferred to later handoff phases; not implemented or advertised as available.
+Compute,Private outbound-only agent,P0,NOT_STARTED,,,AT-057,,Deferred to later handoff phases; not implemented or advertised as available.
 Compute,Worker health and capability view,P1,TESTED,/v1/compute/pools,/overview; /runs/[id],AT-058,evidence/VERIFICATION.md,Real local CPU heartbeat/capabilities only; no GPU/cluster inventory claimed.
-Compute,GPU/RTX placement admission,P1,NOT_STARTED,,,AT-059,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Compute,GPU/RTX placement admission,P1,NOT_STARTED,,,AT-059,,Deferred to later handoff phases; not implemented or advertised as available.
 Compute,Budget and quota enforcement,P1,TESTED,/v1/budgets; /v1/runs,/overview; /runs/[id],AT-060,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
 Compute,Queued/running/failed job lifecycle,P1,TESTED,/v1/runs,/overview; /runs/[id],AT-061,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
 Compute,Job cancel/retry/checkpoint,P1,TESTED,/v1/runs/{id}/cancel; /v1/runs/{id}/retry,/overview; /runs/[id],AT-062,evidence/VERIFICATION.md,"API cancel/retry, API restart persistence, and killed-worker checkpoint recovery verified."
-Compute,Kubernetes GPU worker adapter,P1,NOT_STARTED,,,AT-063,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Compute,Slurm/HPC worker adapter,P1,NOT_STARTED,,,AT-064,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Compute,Runtime driver compatibility checks,P1,NOT_STARTED,,,AT-065,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Compute,Kubernetes GPU worker adapter,P1,NOT_STARTED,,,AT-063,,Deferred to later handoff phases; not implemented or advertised as available.
+Compute,Slurm/HPC worker adapter,P1,NOT_STARTED,,,AT-064,,Deferred to later handoff phases; not implemented or advertised as available.
+Compute,Runtime driver compatibility checks,P1,NOT_STARTED,,,AT-065,,Deferred to later handoff phases; not implemented or advertised as available.
 Workflow,Recipe form and schema editor,P0,TESTED,/v1/recipes,/workflows; /workflows/new; /runs/[id],AT-066,evidence/VERIFICATION.md,Typed linear recipe form/JSON editor; unsupported graph/config rejected.
 Workflow,Versioned DAG builder,P0,INTEGRATED,/v1/recipes/{id}/revisions,/workflows; /workflows/new; /runs/[id],AT-067,evidence/VERIFICATION.md,Immutable revisions and derived inspectable React Flow graph; general visual DAG editing deferred.
 Workflow,Recipe lint and compatibility,P0,TESTED,/v1/recipes/validate,/workflows; /workflows/new; /runs/[id],AT-068,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
@@ -71,14 +71,14 @@ Workflow,Start workflow run,P0,TESTED,/v1/runs,/workflows; /workflows/new; /runs
 Workflow,Run logs and trace viewer,P0,INTEGRATED,/v1/runs/{id}/events,/workflows; /workflows/new; /runs/[id],AT-070,evidence/VERIFICATION.md,"Structured run events, filtering/download and IDs; distributed trace spans deferred."
 Workflow,Web event stream and polling fallback,P1,INTEGRATED,/v1/runs/{id}/events,/workflows; /workflows/new; /runs/[id],AT-071,evidence/VERIFICATION.md,Real polling implemented; SSE stream/resume deferred.
 Workflow,Durable retries on worker crash,P1,TESTED,,/workflows; /workflows/new; /runs/[id],AT-072,evidence/VERIFICATION.md,Verified local P00–P05 behavior; see executed tests and screenshots.
-Workflow,Scheduled workflow run,P1,NOT_STARTED,,,AT-073,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Workflow,Scheduled workflow run,P1,NOT_STARTED,,,AT-073,,Deferred to later handoff phases; not implemented or advertised as available.
 Workflow,Budget approvals before dispatch,P1,INTEGRATED,,/workflows; /workflows/new; /runs/[id],AT-074,evidence/VERIFICATION.md,Automatic budget admission/reservation; human approval workflow deferred.
-Evaluation,Import external benchmark results,P1,NOT_STARTED,,,AT-075,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Evaluation,Import external benchmark results,P1,NOT_STARTED,,,AT-075,,Deferred to later handoff phases; not implemented or advertised as available.
 Evaluation,Dataset quality evaluation,P1,INTEGRATED,,/datasets/[id],AT-076,evidence/VERIFICATION.md,Immutable schema/integrity/duplicate reports; downstream benchmark evaluation deferred.
-Evaluation,Version diff metrics,P1,NOT_STARTED,,,AT-077,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Evaluation,Training feedback attribution,P2,NOT_STARTED,,,AT-078,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Evaluation,Active learning recommendation,P2,NOT_STARTED,,,AT-079,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Evaluation,Protected holdout isolation,P2,NOT_STARTED,,,AT-080,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Evaluation,Version diff metrics,P1,NOT_STARTED,,,AT-077,,Deferred to later handoff phases; not implemented or advertised as available.
+Evaluation,Training feedback attribution,P2,NOT_STARTED,,,AT-078,,Deferred to later handoff phases; not implemented or advertised as available.
+Evaluation,Active learning recommendation,P2,NOT_STARTED,,,AT-079,,Deferred to later handoff phases; not implemented or advertised as available.
+Evaluation,Protected holdout isolation,P2,NOT_STARTED,,,AT-080,,Deferred to later handoff phases; not implemented or advertised as available.
 Developer,REST OpenAPI documentation,P0,TESTED,/v1/openapi.json,/developers; /settings/api-keys; /settings/webhooks,AT-081,evidence/VERIFICATION.md,44 documented API paths; generated contracts checked for drift.
 Developer,Python SDK,P0,TESTED,,/developers; /settings/api-keys; /settings/webhooks,AT-082,evidence/VERIFICATION.md,"Sync SDK with typed generated models, multipart helper and streaming checksum verification; blank-env install verified."
 Developer,TypeScript SDK,P0,TESTED,,/developers; /settings/api-keys; /settings/webhooks,AT-083,evidence/VERIFICATION.md,Typed TypeScript SDK create/run/wait/download flow executed against real API.
@@ -93,17 +93,17 @@ Governance,Tenant isolation and cross-access denial,P0,TESTED,/v1/*,/settings/me
 Governance,RBAC and service accounts,P0,INTEGRATED,/v1/members; /v1/api-keys,/settings/members; /settings/audit,AT-092,evidence/VERIFICATION.md,Owner/Admin/Engineer/Viewer and user-owned scoped keys; independent service accounts deferred.
 Governance,Audit event query,P0,TESTED,/v1/audit-events,/settings/members; /settings/audit,AT-093,evidence/VERIFICATION.md,Tenant-scoped append-only audit query; no external SIEM integration.
 Governance,Source-use license policy,P0,TESTED,/v1/datasets; /v1/runs,/settings/members; /settings/audit,AT-094,evidence/VERIFICATION.md,Declared local source-use policy; provider legal/permission registry deferred.
-Governance,Provider credential secret storage,P0,NOT_STARTED,,,AT-095,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Governance,Provider credential secret storage,P0,NOT_STARTED,,,AT-095,,Deferred to later handoff phases; not implemented or advertised as available.
 Governance,Data export policy enforcement,P1,TESTED,/v1/exports,/settings/members; /settings/audit,AT-096,evidence/VERIFICATION.md,"Policy-gated authenticated, user/tenant-bound expiring export grants."
-Governance,Data residency policy,P1,NOT_STARTED,,,AT-097,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Governance,Enterprise SSO/SCIM,P1,NOT_STARTED,,,AT-098,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Governance,Security incident and retention procedures,P1,NOT_STARTED,,,AT-099,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Governance,Data residency policy,P1,NOT_STARTED,,,AT-097,,Deferred to later handoff phases; not implemented or advertised as available.
+Governance,Enterprise SSO/SCIM,P1,NOT_STARTED,,,AT-098,,Deferred to later handoff phases; not implemented or advertised as available.
+Governance,Security incident and retention procedures,P1,NOT_STARTED,,,AT-099,,Deferred to later handoff phases; not implemented or advertised as available.
 Operations,Usage event ledger,P0,TESTED,/v1/usage,/overview; /settings/usage,AT-100,evidence/VERIFICATION.md,"Append-only checkpoint usage ledger, internal estimates and zero external charges; not real invoicing."
-Operations,GPU/API cost estimation,P0,NOT_STARTED,,,AT-101,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Operations,Billing reconciliation,P0,NOT_STARTED,,,AT-102,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Operations,GPU/API cost estimation,P0,NOT_STARTED,,,AT-101,,Deferred to later handoff phases; not implemented or advertised as available.
+Operations,Billing reconciliation,P0,NOT_STARTED,,,AT-102,,Deferred to later handoff phases; not implemented or advertised as available.
 Operations,Budget caps and alerts,P0,INTEGRATED,/v1/budgets,/overview; /settings/usage,AT-103,evidence/VERIFICATION.md,Hard caps/reservations verified; notifications/alerts deferred.
 Operations,Metrics/traces dashboard,P0,INTEGRATED,/v1/overview,/overview; /settings/usage,AT-104,evidence/VERIFICATION.md,Real overview metrics and run events/IDs; Prometheus/OTel dashboards deferred.
 Operations,Health readiness and provider status,P1,TESTED,/v1/health/ready,/overview; /settings/usage,AT-105,evidence/VERIFICATION.md,Real DB/S3/Temporal readiness plus local CPU heartbeat; external capabilities explicitly unavailable.
-Operations,Backup/restore verification,P1,NOT_STARTED,,,AT-106,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
-Operations,Staging/preview promotion gate,P1,NOT_STARTED,,,AT-107,,Deferred to handoff phases P06–P12; not implemented or advertised as available.
+Operations,Backup/restore verification,P1,NOT_STARTED,,,AT-106,,Deferred to later handoff phases; not implemented or advertised as available.
+Operations,Staging/preview promotion gate,P1,NOT_STARTED,,,AT-107,,Deferred to later handoff phases; not implemented or advertised as available.
 Operations,Keyboard and WCAG validation,P1,TESTED,,/overview; /settings/usage,AT-108,evidence/VERIFICATION.md,"Axe WCAG checks on five routes in light/dark, five widths, keyboard-only lifecycle; human screen-reader signoff pending."

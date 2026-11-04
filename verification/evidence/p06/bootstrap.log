@@ -1,0 +1,28 @@
+python scripts/configure.py
+Using existing .env.
+uv sync --frozen
+Checked 65 packages in 0.80ms
+pnpm install --frozen-lockfile
+Scope: all 3 workspace projects
+Already up to date
+Done in 598ms using pnpm v11.25.0
+pnpm exec playwright install chromium --only-shell
+docker compose up -d --wait postgres minio temporal
+ Container ai-data-foundry-minio-1  Running
+ Container ai-data-foundry-postgres-1  Running
+ Container ai-data-foundry-temporal-1  Running
+ Container ai-data-foundry-temporal-data-init-1  Starting
+ Container ai-data-foundry-temporal-data-init-1  Started
+ Container ai-data-foundry-temporal-data-init-1  Waiting
+ Container ai-data-foundry-temporal-data-init-1  Exited
+ Container ai-data-foundry-temporal-data-init-1  Waiting
+ Container ai-data-foundry-minio-1  Waiting
+ Container ai-data-foundry-temporal-1  Waiting
+ Container ai-data-foundry-postgres-1  Waiting
+ Container ai-data-foundry-temporal-1  Healthy
+ Container ai-data-foundry-postgres-1  Healthy
+ Container ai-data-foundry-temporal-data-init-1  Exited
+ Container ai-data-foundry-minio-1  Healthy
+uv run alembic upgrade head
+uv run python -m foundry.bootstrap
+Local storage and two independent development organizations initialized; no passwords printed.

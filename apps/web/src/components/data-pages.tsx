@@ -38,6 +38,8 @@ import type {
 } from "@/lib/api";
 import { date, money, saveExport, shortId } from "@/lib/api";
 import { useResource, useWorkspace } from "./context";
+import { BoxEditor, PrivateImage } from "./annotation-image";
+import type { Annotation } from "@/lib/curation";
 import {
   Button,
   Code,
@@ -338,7 +340,9 @@ export function DatasetsPage({ onCreate }: { onCreate: () => void }) {
                       </div>
                     </td>
                     <td>
-                      <span className="status">Text</span>
+                      <span className="status">
+                        {dataset.modality === "image" ? "Image" : "Text"}
+                      </span>
                     </td>
                     <td className="mono muted">
                       {dataset.versions_count || 0}
@@ -405,6 +409,7 @@ export function DatasetDetail({ id }: { id: string }) {
       sample_id: string;
       content_hash: string;
       payload: Record<string, unknown>;
+      annotation?: Annotation;
     }[];
     total: number;
     next_offset: number | null;
@@ -428,11 +433,15 @@ export function DatasetDetail({ id }: { id: string }) {
     setProgress(0);
     await action.perform(async () => {
       if (
-        !file.name.endsWith(".jsonl") ||
+        !(dataset.modality === "image"
+          ? /\.(png|jpe?g)$/i.test(file.name)
+          : file.name.endsWith(".jsonl")) ||
         file.size > 20 * 1024 * 1024 ||
         file.size === 0
       )
-        throw new Error("Choose a nonempty .jsonl file under 20 MiB.");
+        throw new Error(
+          `Choose a nonempty ${dataset.modality === "image" ? "PNG/JPEG image" : ".jsonl file"} under 20 MiB.`,
+        );
       const sha = Array.from(
         new Uint8Array(
           await crypto.subtle.digest("SHA-256", await file.arrayBuffer()),
@@ -445,7 +454,12 @@ export function DatasetDetail({ id }: { id: string }) {
         body: {
           dataset_id: id,
           filename: file.name,
-          content_type: "application/x-ndjson",
+          content_type:
+            dataset.modality === "image"
+              ? /\.png$/i.test(file.name)
+                ? "image/png"
+                : "image/jpeg"
+              : "application/x-ndjson",
           bytes: file.size,
           sha256: sha,
         },
@@ -486,9 +500,17 @@ export function DatasetDetail({ id }: { id: string }) {
         eyebrow="DATASETS"
         title={dataset.name}
         description={
-          dataset.description || "Versioned text data with complete provenance."
+          dataset.description || "Versioned data with complete provenance."
         }
       >
+        {organization.scopes.includes("annotations:manage") && (
+          <Link
+            href={`/curation/new?dataset=${id}`}
+            className="button secondary"
+          >
+            Review & curate
+          </Link>
+        )}
         {organization.scopes.includes("datasets:write") && (
           <Button variant="secondary" onClick={() => setEdit(true)}>
             Edit details
@@ -506,7 +528,8 @@ export function DatasetDetail({ id }: { id: string }) {
       </PageHeader>
       <div className="detail-meta" style={{ marginTop: -14, marginBottom: 22 }}>
         <span>
-          <FileText size={12} /> Text · JSONL
+          <FileText size={12} />{" "}
+          {dataset.modality === "image" ? "Image · PNG/JPEG" : "Text · JSONL"}
         </span>
         <span>
           <Layers3 size={12} /> {versions.data?.items.length || 0} versions
@@ -517,17 +540,19 @@ export function DatasetDetail({ id }: { id: string }) {
         </span>
       </div>
       <div className="tabs" role="tablist" aria-label="Dataset views">
-        {["Samples", "Versions", "Quality", "Lineage"].map((value) => (
-          <button
-            key={value}
-            role="tab"
-            aria-selected={tab === value}
-            className={`tab ${tab === value ? "active" : ""}`}
-            onClick={() => setTab(value)}
-          >
-            {value}
-          </button>
-        ))}
+        {["Samples", "Versions", "Quality", "Data card", "Lineage"].map(
+          (value) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={tab === value}
+              className={`tab ${tab === value ? "active" : ""}`}
+              onClick={() => setTab(value)}
+            >
+              {value}
+            </button>
+          ),
+        )}
       </div>
       <ErrorNotice
         error={action.error || versions.error || samples.error || uploads.error}
@@ -582,19 +607,60 @@ export function DatasetDetail({ id }: { id: string }) {
                           label="Copy sample"
                         />
                       </header>
-                      <dl>
-                        <dt>Prompt</dt>
-                        <dd>
-                          {String(
-                            sample.payload?.prompt ??
-                              JSON.stringify(sample.payload),
-                          )}
-                        </dd>
-                        <dt>Response</dt>
-                        <dd className="response-text">
-                          {String(sample.payload?.response ?? "—")}
-                        </dd>
-                      </dl>
+                      {dataset.modality === "image" && selected ? (
+                        <div className="panel-body">
+                          <BoxEditor
+                            path={`/v1/datasets/${id}/versions/${selected.id}/samples/${sample.sample_id}/image`}
+                            width={
+                              (sample.payload.image as { width: number }).width
+                            }
+                            height={
+                              (sample.payload.image as { height: number })
+                                .height
+                            }
+                            categories={
+                              sample.annotation?.kind === "boxes"
+                                ? [
+                                    ...new Set(
+                                      sample.annotation.boxes.map(
+                                        (box) => box.label,
+                                      ),
+                                    ),
+                                  ]
+                                : []
+                            }
+                            boxes={
+                              sample.annotation?.kind === "boxes"
+                                ? sample.annotation.boxes
+                                : []
+                            }
+                            onChange={() => {}}
+                            readOnly
+                          />
+                        </div>
+                      ) : (
+                        <dl>
+                          <dt>Prompt</dt>
+                          <dd>
+                            {String(
+                              sample.payload?.prompt ??
+                                JSON.stringify(sample.payload),
+                            )}
+                          </dd>
+                          <dt>Response</dt>
+                          <dd className="response-text">
+                            {String(sample.payload?.response ?? "—")}
+                          </dd>
+                        </dl>
+                      )}
+                      {sample.annotation?.kind === "category" && (
+                        <div className="detail-meta">
+                          <span className="status">
+                            {sample.annotation.label}
+                          </span>
+                          <span>Human-reviewed category</span>
+                        </div>
+                      )}
                     </article>
                   ))}
                   <div
@@ -660,6 +726,30 @@ export function DatasetDetail({ id }: { id: string }) {
                         <ArrowDownToLine size={13} />
                         Export JSONL
                       </Button>
+                      {(["coco", "yolo"] as const)
+                        .filter((format) => version.manifest.exports?.[format])
+                        .map((format) => (
+                          <Button
+                            key={format}
+                            variant="secondary"
+                            busy={action.busy}
+                            onClick={() =>
+                              action.perform(async () => {
+                                await saveExport(
+                                  call,
+                                  version.id,
+                                  organization.id,
+                                  format,
+                                );
+                                toast(
+                                  `${format.toUpperCase()} export downloaded.`,
+                                );
+                              })
+                            }
+                          >
+                            Export {format.toUpperCase()}
+                          </Button>
+                        ))}
                     </div>
                     <div className="detail-meta mono">
                       <ShieldCheck size={12} />
@@ -686,6 +776,29 @@ export function DatasetDetail({ id }: { id: string }) {
                 />
               </div>
             ))}
+          {tab === "Data card" && (
+            <div className="panel">
+              <div className="panel-heading">
+                <h2>Published data card</h2>
+                <ShieldCheck size={14} />
+              </div>
+              {selected?.manifest.data_card ? (
+                <div className="panel-body">
+                  <Code value={selected.manifest.data_card} />
+                  <p className="muted">
+                    Publication approval and review provenance are sealed in the
+                    version manifest.
+                  </p>
+                </div>
+              ) : (
+                <Empty
+                  icon={FileCheck2}
+                  title="Document this dataset through review"
+                  description="Create a curation session and complete its data card before approving publication."
+                />
+              )}
+            </div>
+          )}
           {tab === "Lineage" &&
             (selected ? (
               <div className="panel">
@@ -740,13 +853,28 @@ export function DatasetDetail({ id }: { id: string }) {
                   <strong>
                     {uploading
                       ? `Uploading ${progress}%`
-                      : "Add a JSONL source"}
+                      : dataset.modality === "image"
+                        ? "Add a PNG/JPEG image"
+                        : "Add a JSONL source"}
                   </strong>
-                  <span>UTF-8 · up to 20 MiB</span>
+                  <span>
+                    {dataset.modality === "image"
+                      ? "PNG/JPEG · 6 MP · 4096 px per edge"
+                      : "UTF-8"}{" "}
+                    · up to 20 MiB
+                  </span>
                   <input
                     type="file"
-                    accept=".jsonl"
-                    aria-label="Upload JSONL source"
+                    accept={
+                      dataset.modality === "image"
+                        ? ".png,.jpg,.jpeg"
+                        : ".jsonl"
+                    }
+                    aria-label={
+                      dataset.modality === "image"
+                        ? "Upload image source"
+                        : "Upload JSONL source"
+                    }
                     disabled={uploading}
                     onChange={(event) => {
                       if (event.target.files?.[0])
@@ -757,6 +885,13 @@ export function DatasetDetail({ id }: { id: string }) {
                 </label>
                 {uploads.data?.items.map((value) => (
                   <div className="source-row" key={value.id}>
+                    {dataset.modality === "image" &&
+                      value.status === "COMPLETED" && (
+                        <PrivateImage
+                          path={`/v1/uploads/${value.id}/media`}
+                          alt={`Verified preview of ${value.filename}`}
+                        />
+                      )}
                     <FileText size={13} />
                     <span style={{ overflowWrap: "anywhere" }}>
                       {value.filename}

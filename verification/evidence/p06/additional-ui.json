@@ -1,0 +1,44 @@
+[
+  {
+    "route": "/curation/new?dataset=ds_56ec5b40324a4dd4ae62eb1db480b241",
+    "theme": "light",
+    "width": 1440,
+    "axe_violations": 0,
+    "shell_overflow": false
+  },
+  {
+    "route": "/curation/new?dataset=ds_56ec5b40324a4dd4ae62eb1db480b241",
+    "theme": "light",
+    "width": 360,
+    "axe_violations": 0,
+    "shell_overflow": false
+  },
+  {
+    "route": "/curation/profiles",
+    "theme": "light",
+    "width": 1440,
+    "axe_violations": 0,
+    "shell_overflow": false
+  },
+  {
+    "route": "/curation/new?dataset=ds_56ec5b40324a4dd4ae62eb1db480b241",
+    "theme": "dark",
+    "width": 1440,
+    "axe_violations": 0,
+    "shell_overflow": false
+  },
+  {
+    "route": "/curation/new?dataset=ds_56ec5b40324a4dd4ae62eb1db480b241",
+    "theme": "dark",
+    "width": 360,
+    "axe_violations": 0,
+    "shell_overflow": false
+  },
+  {
+    "route": "/curation/profiles",
+    "theme": "dark",
+    "width": 1440,
+    "axe_violations": 0,
+    "shell_overflow": false
+  }
+]

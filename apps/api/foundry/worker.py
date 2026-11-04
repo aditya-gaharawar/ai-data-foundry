@@ -15,10 +15,13 @@ from temporalio.exceptions import ApplicationError, WorkflowAlreadyStartedError
 from temporalio.worker import Worker
 
 from .config import settings
+from .curation import frozen_input, image_exports
 from .db import Session, now, uid
 from .errors import Problem
+from .media import upload_samples
 from .models import (
     Audit,
+    Curation,
     Dataset,
     Delivery,
     Export,
@@ -33,7 +36,7 @@ from .models import (
     Version,
     Webhook,
 )
-from .recipes import GenerateConfig, compile_recipe, generate_text, parse_jsonl, quality_report
+from .recipes import GenerateConfig, compile_recipe, generate_text, quality_report
 from .security import canonical, cipher, digest, validate_webhook_url, webhook_signature
 from .storage import put_immutable, read_artifact
 from .workflows import DatasetWorkflow
@@ -139,24 +142,29 @@ def _process(run_id):
         order = compile_recipe(revision.definition)
         policy, schema = target.policy, target.sample_schema
         org_id = run.organization_id
+        curated, curation_snapshot = [], None
         if policy.get("allowed_training_use") is not True:
             raise Problem(403, "POLICY_BLOCKED", "Source rights do not permit this operation.")
         if order[0]["type"] == "ingest":
             source = owned(db, Upload, order[0]["config"]["upload_id"], org_id)
             if source.dataset_id != target.id or source.status != "COMPLETED":
                 raise Problem(422, "INVALID_SOURCE", "Use a completed upload belonging to this dataset.")
-            samples = parse_jsonl(
-                read_artifact(
-                    {
-                        "key": source.object_key,
-                        "version_id": source.object_version,
-                        "sha256": source.expected_sha256,
-                        "bytes": source.expected_bytes,
-                    }
-                )
-            )
-            origin = {"engine": "ingest.jsonl@1", "upload_id": source.id, "sha256": source.expected_sha256}
+            samples = upload_samples(source)
+            origin = {
+                "engine": "ingest.image@1" if target.modality == "image" else "ingest.jsonl@1",
+                "upload_id": source.id,
+                "sha256": source.expected_sha256,
+            }
+        elif order[0]["type"] == "curate":
+            curation = owned(db, Curation, order[0]["config"]["curation_id"], org_id)
+            curated, curation_snapshot = frozen_input(curation, target)
+            samples = [sample["payload"] for sample in curated]
+            origin = {"engine": "curation.human@1", "curation_id": curation.id, "snapshot": curation.snapshot}
         else:
+            if target.modality != "text":
+                raise Problem(
+                    422, "CAPABILITY_UNAVAILABLE", "The deterministic generator supports text only."
+                )
             config = GenerateConfig.model_validate(order[0]["config"])
             samples = generate_text(config.count, config.seed)
             origin = {"engine": config.engine, "seed": config.seed, "reproducibility": "deterministic"}
@@ -183,17 +191,31 @@ def _process(run_id):
                 raise Problem(402, "BUDGET_EXCEEDED", "Processing stopped before the hard budget cap.")
             envelopes = [
                 {
-                    "sample_id": "smp_" + digest(canonical(sample))[:32],
+                    "sample_id": curated[index + offset]["sample_id"]
+                    if curated
+                    else "smp_" + digest(canonical(sample))[:32],
                     "dataset_version_id": version_id,
                     "schema_version": "1.0",
-                    "modality": "text",
+                    "modality": target.modality,
                     "payload": sample,
-                    "source_refs": [origin],
+                    "source_refs": [
+                        *(curated[index + offset].get("source_refs", []) if curated else []),
+                        origin,
+                    ],
                     "generation_run_id": run_id,
                     "content_hash": digest(canonical(sample)),
                     "license_policy": policy,
+                    **(
+                        {
+                            "annotation": curated[index + offset]["annotation"],
+                            "annotation_task_id": curated[index + offset]["annotation_task_id"],
+                            "review_status": curated[index + offset]["review_status"],
+                        }
+                        if curated
+                        else {}
+                    ),
                 }
-                for sample in batch
+                for offset, sample in enumerate(batch)
             ]
             artifact = put_immutable(
                 org_id, b"".join(canonical(value) + b"\n" for value in envelopes), "application/x-ndjson"
@@ -237,6 +259,11 @@ def _process(run_id):
             )
     activity.heartbeat("verifying")
     report = quality_report(samples, schema, order[1]["config"])
+    if curation_snapshot:
+        report["passed"] = report["passed"] and curation_snapshot["quality"]["passed"]
+        report["curation"] = curation_snapshot["quality"]
+        report["checks"] = list(dict.fromkeys([*report["checks"], *curation_snapshot["quality"]["checks"]]))
+        report["limitations"] = curation_snapshot["quality"]["limitations"]
     with Session.begin() as db:
         run = db.scalar(select(Run).where(Run.id == run_id).with_for_update())
         if run.status in TERMINAL:
@@ -285,6 +312,36 @@ def publish_run(run_id: str):
             or 0
         ) + 1
         version_id = "ver_" + run.id.removeprefix("run_")
+        curation_evidence = {}
+        order = compile_recipe(revision.definition)
+        if order[0]["type"] == "curate":
+            curation = owned(db, Curation, order[0]["config"]["curation_id"], run.organization_id)
+            curated, snapshot = frozen_input(curation, target)
+            curation_evidence = {
+                "curation_id": curation.id,
+                "curation_snapshot": curation.snapshot,
+                "data_card": snapshot["data_card"],
+                "quality_profile": snapshot["profile"],
+                "publication_approval": snapshot["approval"],
+                "annotation_categories": snapshot["categories"],
+                "review_history_artifact": curation.snapshot,
+                "review_count": sum(review["decision"] != "reopen" for review in snapshot["review_history"]),
+                "exports": image_exports(
+                    run.organization_id, curated, snapshot["categories"], snapshot["data_card"]
+                )
+                if target.modality == "image"
+                else {},
+            }
+            db.add(
+                Usage(
+                    id=uid("use"),
+                    organization_id=run.organization_id,
+                    run_id=run.id,
+                    metric="annotation_review_units",
+                    quantity=curation_evidence["review_count"],
+                    dedupe_key="publication",
+                )
+            )
         manifest = {
             "schema_version": "1.0",
             "dataset_id": target.id,
@@ -292,6 +349,7 @@ def publish_run(run_id: str):
             "version": number,
             "organization_id": run.organization_id,
             "sample_count": run.processed,
+            "modality": target.modality,
             "sample_schema": target.sample_schema,
             "sample_format": "foundry.sample-envelope/1.0",
             "data_artifact": data_artifact,
@@ -311,6 +369,7 @@ def publish_run(run_id: str):
                 "source_sha256": CODE_DIGEST,
             },
             "code_revision": "worktree:sha256:" + CODE_DIGEST,
+            **curation_evidence,
         }
         manifest_bytes = canonical(manifest)
         put_immutable(run.organization_id, manifest_bytes, "application/json")

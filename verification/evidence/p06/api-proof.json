@@ -1,0 +1,137 @@
+{
+  "captured_at_ist": "2026-11-05T02:23:47.110260+05:30",
+  "dataset_id": "ds_56ec5b40324a4dd4ae62eb1db480b241",
+  "curation_id": "cur_ebf7eeb12db34e768f0625b992b3316d",
+  "task_id": "ant_085728dc811b452182dba3a34d653dcf",
+  "run_id": "run_76e399369a19440db771b08f410cdaf6",
+  "version_id": "ver_76e399369a19440db771b08f410cdaf6",
+  "manifest_sha256": "0d0abecee6611182d4824b3617d5f01b5fca69d0bc4d72e3c0b6efe0f8349d74",
+  "source_sha256_matches_worker": "3f2a0fcf85566fb0b2aa04e7d8e1c416d9a1bfad270bd2ca3ee6069445a6ea62",
+  "frozen_snapshot_sha256": "a654afe1d3c19d23f92ac641d553eace4b0b6ea979e9f2fee5d01c8cbaa24552",
+  "annotation_from_api_and_jsonl": {
+    "kind": "boxes",
+    "boxes": [
+      {
+        "x": 8.0,
+        "y": 6.0,
+        "label": "object",
+        "width": 32.0,
+        "height": 24.0
+      }
+    ]
+  },
+  "data_card": {
+    "policy": {
+      "origin": "local",
+      "license": "user-declared-local",
+      "allowed_training_use": true
+    },
+    "purpose": "Browser proof of human-reviewed source data",
+    "sources": [
+      [
+        {
+          "row": 0,
+          "sha256": "2171cbe41a3419d5eed2224ccde8e9f6d009aff295ac7848ead9d2dad178e285",
+          "upload_id": "upl_b707609b4ead40f7b5b62d86bc174e20"
+        }
+      ]
+    ],
+    "limitations": "Small fixture; agreement is not ground-truth accuracy",
+    "intended_use": "Local synthetic acceptance tests",
+    "restrictions": "Local fixture only",
+    "content_risks": "Synthetic geometric shapes and test text"
+  },
+  "approval": {
+    "at": "2026-11-04T20:50:44.117022+00:00",
+    "user_id": "usr_60a6981628aa4396910f79638f36bb42",
+    "api_key_id": null,
+    "approved_for_publication": true
+  },
+  "quality": {
+    "total": 1,
+    "valid": 1,
+    "checks": [
+      "json_schema",
+      "annotation_bounds_and_vocabulary",
+      "exact_deduplication",
+      "near_deduplication",
+      "independent_human_reviews",
+      "data_card",
+      "source_rights"
+    ],
+    "passed": true,
+    "invalid": 0,
+    "pending": 0,
+    "reasons": [],
+    "accepted": 1,
+    "eligible": 1,
+    "excluded": 0,
+    "rejected": 0,
+    "agreement": {
+      "ratio": null,
+      "agreed": 0,
+      "paired_tasks": 0
+    },
+    "duplicates": 0,
+    "limitations": [
+      "Human agreement does not establish ground-truth accuracy.",
+      "Near duplicates use lexical shingles or perceptual dHash, not semantic equivalence.",
+      "No PII, factuality, contamination or automated label model checks."
+    ],
+    "status_counts": {
+      "ACCEPTED": 1
+    },
+    "duplicate_ratio": 0.0,
+    "near_duplicates": 0,
+    "review_coverage": 1.0,
+    "acceptance_ratio": 1.0,
+    "required_reviews": 1,
+    "invalid_annotations": 0,
+    "source_deduplication": {
+      "total": 1,
+      "config": {
+        "dedupe": "exact",
+        "minimum_samples": 1,
+        "text_similarity": 0.85,
+        "max_duplicate_ratio": 0.0,
+        "image_hamming_distance": 4,
+        "max_near_duplicate_ratio": 1.0,
+        "minimum_acceptance_ratio": 0.5
+      },
+      "excluded": {},
+      "retained": 1,
+      "algorithm": "normalized-png-sha256 + dhash64/1",
+      "near_duplicates": 0,
+      "exact_duplicates": 0
+    }
+  },
+  "exports": {
+    "coco": {
+      "bytes": 1053,
+      "sha256": "f2b640b8e7f7fe6c3e784fde92d75c1810278e08f6efdb5b112a05370309472b",
+      "normalized_image_sha256": "2171cbe41a3419d5eed2224ccde8e9f6d009aff295ac7848ead9d2dad178e285"
+    },
+    "yolo": {
+      "bytes": 1101,
+      "sha256": "4c35b61a00010edb4ce4765dbca0be6e0a1bfc9ab77c05d9cc3d9defc606f7d0",
+      "normalized_image_sha256": "2171cbe41a3419d5eed2224ccde8e9f6d009aff295ac7848ead9d2dad178e285"
+    }
+  },
+  "other_tenant_status_codes": {
+    "coco_copied_grant": 404,
+    "yolo_copied_grant": 404,
+    "curation": 404,
+    "task": 404,
+    "task_image": 404,
+    "quality_profile": 404,
+    "version_image": 404
+  },
+  "api_restart": {
+    "old_pid": 202051,
+    "new_pid": 210523,
+    "task_and_history_equal": true,
+    "curation_equal": true,
+    "manifest_hash_equal": true
+  },
+  "credentials_or_grants_included": false
+}

@@ -49,6 +49,10 @@ class IngestConfig(Strict):
     upload_id: str
 
 
+class CurateConfig(Strict):
+    curation_id: str
+
+
 class ValidateConfig(Strict):
     minimum_samples: int = Field(default=1, ge=1, le=10000)
     max_duplicate_ratio: float = Field(default=0, ge=0, le=1)
@@ -98,17 +102,20 @@ def compile_recipe(definition: dict) -> list[dict]:
         ["ingest", "validate", "publish"],
         ["generate", "validate", "publish", "export"],
         ["ingest", "validate", "publish", "export"],
+        ["curate", "validate", "publish"],
+        ["curate", "validate", "publish", "export"],
     ):
         raise Problem(
             422,
             "UNSUPPORTED_PIPELINE",
-            "Use generate/ingest → validate → publish, optionally followed by export.",
+            "Use generate/ingest/curate → validate → publish, optionally followed by export.",
         )
     if len(seen) != len(nodes) - 1:
         raise Problem(422, "INVALID_RECIPE", "All nodes must form one connected pipeline.")
     schemas = {
         "generate": GenerateConfig,
         "ingest": IngestConfig,
+        "curate": CurateConfig,
         "validate": ValidateConfig,
         "publish": Strict,
         "export": ExportConfig,

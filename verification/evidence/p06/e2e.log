@@ -1,0 +1,17 @@
+pnpm test:e2e
+$ playwright test
+
+Running 8 tests using 1 worker
+
+(node:202994) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/core.spec.ts:30:5 › create → durable run → quality → immutable version → real JSONL download (19.5s)
+  ✓  2 tests/e2e/core.spec.ts:108:5 › administrator provisions a separate viewer account and permissions apply (9.2s)
+  ✓  3 tests/e2e/core.spec.ts:140:5 › priority routes are responsive, accessible, and support both themes (39.3s)
+  ✓  4 tests/e2e/core.spec.ts:195:5 › keyboard palette, mobile navigation, errors and logout (5.8s)
+  ✓  5 tests/e2e/core.spec.ts:252:5 › browser multipart upload reaches a verified version and escapes sample HTML (12.5s)
+  ✓  6 tests/e2e/curation.spec.ts:86:5 › image upload → box review → data card → durable publication → matching COCO and YOLO (53.4s)
+  ✓  7 tests/e2e/curation.spec.ts:285:5 › two independent labelers correct, disagree, and receive independent adjudication (23.1s)
+  ✓  8 tests/e2e/keyboard.spec.ts:19:5 › keyboard-only lifecycle from sign-in through JSONL export (14.6s)
+
+  8 passed (3.0m)

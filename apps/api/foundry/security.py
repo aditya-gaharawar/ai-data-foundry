@@ -31,11 +31,21 @@ SCOPES = [
     "webhooks:manage",
     "audit:read",
     "budgets:manage",
+    "annotations:manage",
+    "annotations:review",
+    "annotations:adjudicate",
 ]
 ROLES = {
     "Owner": SCOPES,
     "Admin": SCOPES,
-    "Engineer": ["datasets:read", "datasets:write", "runs:execute"],
+    "Engineer": [
+        "datasets:read",
+        "datasets:write",
+        "runs:execute",
+        "annotations:manage",
+        "annotations:review",
+    ],
+    "Labeler": ["datasets:read", "annotations:review"],
     "Viewer": ["datasets:read"],
 }
 

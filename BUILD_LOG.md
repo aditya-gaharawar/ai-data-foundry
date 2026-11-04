@@ -1,6 +1,6 @@
 # Build evidence log
 
-Delivery checkpoint: **2026-11-05 00:22 IST**. The imported archive was a planning package;
+Delivery checkpoint: **2026-11-05 02:30 IST**. The imported archive was a planning package;
 there was no AI Data Foundry implementation, repository, configured provider or
 remote at baseline. Its SHA-256 manifest was verified before import. Original
 planning evidence/manifest are retained under `docs/handoff/`.
@@ -15,8 +15,9 @@ planning evidence/manifest are retained under `docs/handoff/`.
 | P03 | Dataset registry, metadata search/cursors, signed multipart upload, server checksum and safe preview | SDK multipart >5 MiB and real browser S3 upload/CORS. Text JSONL only. |
 | P04 | Typed linear recipes, immutable revisions, durable outbox/Temporal, checkpoints, budgets/usage, quality, immutable versions and signed export | Real 100-record lifecycle, killed-worker 10,000-record recovery, idempotent effects, cancel/retry, quality and budget negatives. General DAGs/external engines deferred. |
 | P05 | OpenAPI 3.1, generated TS/Python contracts, SDKs, CLI, HMAC webhooks with retry/dead-letter/replay | Both SDK flows, standalone SDK environment, CLI, raw-body signature verification and complete browser flows. Wider provider/compute commands deferred. |
+| P06 | Immutable quality profiles; exact/near cleaning; real PNG/JPEG decoding/preview; category/box labels; assignments, independent consensus/adjudication, correction history; authored data cards, blocking review gate and immutable approval; durable reviewed JSONL/COCO/YOLO publication; both SDKs and CLI | 51 unique automated tests across the current core, production build, clean migration and API-restart proof, 18 new screenshots. Text/image local limits; no model suggestions or accuracy guarantee. Full report: `verification/evidence/p06/VERIFICATION.md`. |
 
-## Commands and results
+## P00–P05 baseline commands and results
 
 All executed check summaries and command outputs are under
 `verification/evidence/VERIFICATION.md` and its adjacent logs: bootstrap (exit 0),
@@ -66,9 +67,9 @@ was modified.
 
 ## True remaining limits and next phase
 
-The full 108-feature product is not complete: **42 TESTED, 16 INTEGRATED with
-explicit limits, 50 NOT_STARTED**. No feature is marked released. The first local
-vertical slice works; P06 curation/annotation is next. Model adapters, GPU/HPC,
+The full 108-feature product is not complete: **51 TESTED, 13 INTEGRATED with
+explicit limits, 44 NOT_STARTED**. No feature is marked released. The local core and P06
+curation/annotation work; P07 authorized model generation is next. Model adapters, GPU/HPC,
 simulations, enterprise identity/billing, advanced quality and production ops
 remain later phases. No authorized provider credentials/rights or compatible
 RTX/cluster are configured; no fake provider/GPU results were produced.
@@ -79,3 +80,40 @@ execution, remote PR/CI execution, production security/load/restore and human
 screen-reader review are not claimed. No Git remote is configured, so no PR was
 opened or merged. All work is locally reviewable. No paid calls/infrastructure,
 external model transmission, public publishing or production deployment occurred.
+
+
+## P06 executed checkpoint
+
+Current verification: **51 unique automated tests passed** (20 unit/contract,
+15 integration including one targeted rejection case, 8 security, 8 browser).
+Bootstrap, lint/type checks, optimized production build, clean-database migration
+and persistence, OpenAPI/Alembic drift checks and smoke all exited 0. Smoke repeats
+a core scenario and is not counted again. Exact commands, outputs, failures and
+corrections are in `verification/evidence/p06/VERIFICATION.md` and adjacent logs.
+
+The phase adds four tenant-scoped tables and migration `0730f891010f`, bounded
+image decoding, a typed reviewed-source worker path, review/data-card console
+routes, generated contracts and SDK/CLI parity. Server-side checks enforce
+assignment, current role/scope, expected revision, independent users/adjudicator,
+annotation validity, coverage, schema, source rights and immutable approval.
+PostgreSQL rejects mutable history and frozen evidence. Signed exports contain
+the same accepted labels as the UI; actual synthetic COCO/YOLO bundles and JSONL
+are retained alongside source/manifest/checksum and second-tenant denial proof.
+
+Reviewer corrections, review history, data card and manifest survived an actual
+API restart with a different PID. Browser flows cover two independent labelers,
+administrator adjudication, image upload/box publication/download, safe source
+rendering, keyboard review, all original core journeys, responsive widths and
+light/dark axe checks. Eighteen new P06 screenshots are retained.
+
+The first live-service test attempt hit an exited supervisor; it was restored
+before retesting. Native-select test selectors and duplicate unlabeled landmarks
+were corrected. The extra Axe capture harness was adjusted to use an explicit
+BrowserContext. Passing results reflect executed corrected code, not substituted
+responses. See the detailed evidence report for scope and exact outputs.
+
+P06 is a verified local text-category/image-box slice. Machine suggestions,
+semantic dedupe, advanced annotations and measured label accuracy remain pending.
+No remote, paid provider or production system was changed. A reviewable local
+branch and `docs/reviews/P06_PR.md` are prepared; opening the required hosted PR
+is blocked because this checkout has no Git remote. Nothing was pushed or merged.

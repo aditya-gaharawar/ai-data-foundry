@@ -15,7 +15,7 @@ class DatasetOut(BaseModel):
     project_id: str
     name: str
     description: str
-    modality: Literal["text"]
+    modality: Literal["text", "image"]
     schema_definition: dict = Field(alias="schema")
     policy: dict
     archived: bool
@@ -86,6 +86,7 @@ class UploadOut(BaseModel):
     status: str
     sample_count: int
     error: str | None = None
+    media: dict = Field(default_factory=dict)
     created_at: datetime
     part_size: int | None = None
     expires_in: int | None = None
@@ -96,7 +97,7 @@ class ExportOut(BaseModel):
     id: str
     organization_id: str
     version_id: str
-    format: Literal["jsonl"]
+    format: Literal["jsonl", "coco", "yolo"]
     status: Literal["READY"]
     created_at: datetime
     download_url: str | None = None

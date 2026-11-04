@@ -1,0 +1,13 @@
+{
+  "curation_id": "cur_e6ecd595c23144b083d1f3b4db9e3b1f",
+  "task_id": "ant_34d7a87ce96249af81e15fd43f0383d2",
+  "reviewer_count": 2,
+  "recorded_decisions": 4,
+  "annotation": {
+    "kind": "category",
+    "label": "object"
+  },
+  "state": "FROZEN",
+  "keyboard_review": true,
+  "uploaded_html_inert": true
+}

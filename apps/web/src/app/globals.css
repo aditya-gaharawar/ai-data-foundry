@@ -1,6 +1,178 @@
 @import "tailwindcss";
 @import "@xyflow/react/dist/style.css";
 
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 20px;
+}
+.resource-name {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.source-selection {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  max-height: 260px;
+  overflow: auto;
+  margin: 8px 0 20px;
+}
+.source-selection legend {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 5px;
+}
+.curation-steps p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 22px;
+}
+.curation-steps p:last-child {
+  margin-bottom: 0;
+}
+.curation-steps strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.curation-gate {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  background: var(--surface);
+}
+.curation-gate > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--amber);
+}
+.curation-gate.gate-pass {
+  border-left-color: var(--green);
+}
+.curation-gate.gate-pass > svg {
+  color: var(--green);
+}
+.curation-gate ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.curation-gate p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.curation-stats .stat-number {
+  font-size: 27px;
+}
+.curation-toolbar {
+  flex-wrap: wrap;
+  padding: 14px 20px;
+}
+.curation-toolbar .form-input {
+  width: auto;
+  max-width: 100%;
+}
+.curation-toolbar .check-field {
+  margin: 0;
+}
+.curation-details > summary {
+  cursor: pointer;
+  padding: 18px 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.review-history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.review-history > li {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.review-history > li:last-child {
+  border-bottom: 0;
+}
+.review-history .section-row {
+  align-items: start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.review-history p {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  margin: 10px 0;
+}
+.review-history .muted {
+  font-size: 11px;
+}
+.review-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.annotation-canvas {
+  background: white;
+  border: 1px solid var(--strong-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.annotation-canvas svg {
+  display: block;
+  width: 100%;
+  max-height: 440px;
+}
+.box-fields {
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+.box-fields legend {
+  padding: 0 5px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.box-coordinates {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.box-coordinates .field {
+  min-width: 0;
+}
+.box-coordinates .field span {
+  font-size: 11px;
+}
+.private-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.source-row .private-image {
+  width: 44px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .box-coordinates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 :root {
   --canvas: #fff;
   --surface: #fafafa;
@@ -148,7 +320,9 @@ small {
 .shell {
   min-height: 100dvh;
 }
-.react-flow__attribution a {color: var(--muted) !important;}
+.react-flow__attribution a {
+  color: var(--muted) !important;
+}
 .sidebar {
   width: 236px;
   position: fixed;
