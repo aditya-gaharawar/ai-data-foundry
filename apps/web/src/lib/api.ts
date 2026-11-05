@@ -23,6 +23,10 @@ export type Dataset = {
   schema: Record<string, unknown>;
   policy: Record<string, unknown>;
   archived: boolean;
+  protection: string;
+  legal_hold: boolean;
+  governance_revision: number;
+  erased_at: string | null;
 };
 export type Version = {
   id: string;

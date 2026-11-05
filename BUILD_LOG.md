@@ -1,5 +1,7 @@
 # Build evidence log
 
+Latest checkpoint: **2026-11-06 01:29 IST**, P07–P12 local expansion. [Detailed evidence](verification/evidence/p07-p12/VERIFICATION.md). Historical checkpoints follow.
+
 Delivery checkpoint: **2026-11-05 02:30 IST**. The imported archive was a planning package;
 there was no AI Data Foundry implementation, repository, configured provider or
 remote at baseline. Its SHA-256 manifest was verified before import. Original
@@ -117,3 +119,44 @@ semantic dedupe, advanced annotations and measured label accuracy remain pending
 No remote, paid provider or production system was changed. A reviewable local
 branch and `docs/reviews/P06_PR.md` are prepared; opening the required hosted PR
 is blocked because this checkout has no Git remote. Nothing was pushed or merged.
+
+
+## P07–P12 executed local expansion
+
+Checkpoint: **2026-11-06 01:29 IST**. The requested combined phase build now has real CPU
+teacher generation, Blender perception artifacts/3D preview, scoped outbound
+compute leases, version search/diffs/evaluation/feedback, privacy/license/review
+policy, independent hold/erasure approvals, local SCIM Users, durable shared-safe
+artifact deletion, ledger/incidents and signed local recovery/readiness.
+
+**77 unique tests passed**: 25 unit/contract, 23 integration, 13 security and
+16 browser. Bootstrap, lint/types, OpenAPI/Alembic drift, fresh DB/restart/tenancy,
+smoke and optimized build passed. Two genuine generation/render browser journeys
+were repeated against the optimized local server. Native smoke repeats and the
+core smoke are not extra unique tests.
+
+Actual recovery verified 1556 object versions,
+186,342,895 bytes, 161
+manifest seals, 38 metadata tables and two
+tenants through an isolated restored API. Temporary DB/bucket cleanup passed.
+The bounded 60-request/4-concurrency local load
+had zero errors and p95 103.83 ms. It is not a production SLA.
+
+All seven source-bound local readiness gates passed; the persisted report is
+HMAC signed and verified. Production release remains BLOCKED_EXTERNAL. The
+optional diskcache advisory, unconfigured SSO/provider/cluster/RTX/staging,
+independent pentest and remote CI/review remain explicit release blockers.
+Cryptography/Pillow were updated and rescanned; no zero-advisory Python claim
+is made. Native PII/exact holdout and artifact-erasure limits remain documented.
+
+All exact commands, native artifacts, screenshots, early failures/corrections
+(including metadata-loading and recovery-helper fixes), source hashes and
+limitations are in `verification/evidence/p07-p12/VERIFICATION.md`. Historical
+P00–P06 evidence is retained; current regression captures are saved separately.
+Feature counts are {'TESTED': 70, 'INTEGRATED': 22, 'NOT_STARTED': 8, 'BLOCKED_EXTERNAL': 8}. No feature is marked RELEASED.
+
+Local branch `phases/p07-p12-completion` and six phase review drafts are prepared.
+No Git remote exists, so no hosted PR or merge is claimed. No paid service,
+private production import, external model inference, cloud resource, public
+publication, remote repository or production system was changed. The source
+bundle excludes private secrets, weights, native binaries and recovery backups.

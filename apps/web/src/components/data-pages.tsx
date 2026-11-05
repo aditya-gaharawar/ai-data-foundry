@@ -39,6 +39,7 @@ import type {
 import { date, money, saveExport, shortId } from "@/lib/api";
 import { useResource, useWorkspace } from "./context";
 import { BoxEditor, PrivateImage } from "./annotation-image";
+import { SimulationSample } from "./simulation-sample";
 import type { Annotation } from "@/lib/curation";
 import {
   Button,
@@ -660,6 +661,13 @@ export function DatasetDetail({ id }: { id: string }) {
                           </span>
                           <span>Human-reviewed category</span>
                         </div>
+                      )}
+                      {!!sample.payload.simulation && selected && (
+                        <SimulationSample
+                          versionId={selected.id}
+                          sampleId={sample.sample_id}
+                          metadata={sample.payload.simulation}
+                        />
                       )}
                     </article>
                   ))}

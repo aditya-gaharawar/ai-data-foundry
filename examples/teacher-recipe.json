@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "name": "Permitted local teacher",
+  "nodes": [
+    {"id": "source", "type": "teacher", "config": {"connection_id": "REPLACE_WITH_APPROVED_LOCAL_CONNECTION_ID", "instructions": "Write one short instruction and answer about numbers.", "count": 1, "seed": 42, "max_output_tokens": 256}},
+    {"id": "validate", "type": "validate", "config": {"minimum_samples": 1, "max_duplicate_ratio": 0, "max_invalid_ratio": 0}},
+    {"id": "publish", "type": "publish", "config": {}}
+  ],
+  "edges": [{"from": "source", "to": "validate"}, {"from": "validate", "to": "publish"}],
+  "budget": {"currency": "USD", "maximum": 1}
+}

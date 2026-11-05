@@ -36,10 +36,13 @@ from .models import (
     Version,
     Webhook,
 )
-from .recipes import GenerateConfig, compile_recipe, generate_text, quality_report
+from .policies import check_publication_policy, pii_transform
+from .recipes import GenerateConfig, compile_recipe, generate_text, parse_jsonl, quality_report
+from .retention import erase_artifacts, fail_erasure
 from .security import canonical, cipher, digest, validate_webhook_url, webhook_signature
+from .source_executions import prepare_source
 from .storage import put_immutable, read_artifact
-from .workflows import DatasetWorkflow
+from .workflows import ArtifactErasureWorkflow, DatasetWorkflow
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("foundry.worker")
@@ -140,9 +143,18 @@ def _process(run_id):
         target = owned(db, Dataset, run.dataset_id, run.organization_id)
         revision = owned(db, RecipeRevision, run.recipe_revision_id, run.organization_id)
         order = compile_recipe(revision.definition)
+        governance = check_publication_policy(db, target, order[0]["type"])
+        admitted = run.checkpoint.get("admitted_policy", governance)
+        if admitted["sha256"] != governance["sha256"]:
+            raise Problem(
+                409,
+                "POLICY_CHANGED",
+                "The organization policy changed after admission. Retry under the current policy.",
+            )
         policy, schema = target.policy, target.sample_schema
         org_id = run.organization_id
         curated, curation_snapshot = [], None
+        deferred = order[0]["type"] in {"teacher", "image_generate", "simulate"}
         if policy.get("allowed_training_use") is not True:
             raise Problem(403, "POLICY_BLOCKED", "Source rights do not permit this operation.")
         if order[0]["type"] == "ingest":
@@ -160,6 +172,8 @@ def _process(run_id):
             curated, curation_snapshot = frozen_input(curation, target)
             samples = [sample["payload"] for sample in curated]
             origin = {"engine": "curation.human@1", "curation_id": curation.id, "snapshot": curation.snapshot}
+        elif deferred:
+            samples, origin = [], {}
         else:
             if target.modality != "text":
                 raise Problem(
@@ -169,6 +183,19 @@ def _process(run_id):
             samples = generate_text(config.count, config.seed)
             origin = {"engine": config.engine, "seed": config.seed, "reproducibility": "deterministic"}
         log(db, run, "run.started", "CPU execution started; durable checkpoints enabled.")
+    if deferred:
+        prepared = prepare_source(run_id, org_id, order[0], lambda: activity.heartbeat("source-execution"))
+        curated = prepared["samples"]
+        samples = [sample["payload"] for sample in curated]
+        origin = prepared["metadata"]
+    transformed, pii_report = pii_transform(samples, governance["definition"]["pii_mode"])
+    if curation_snapshot and transformed != samples:
+        raise Problem(
+            409,
+            "REVIEW_POLICY_CHANGED",
+            "Redaction would change an approved review source. Create and review a new curation under the current policy.",
+        )
+    samples = transformed
     version_id = "ver_" + run_id.removeprefix("run_")
     for index in range(0, len(samples), 100):
         activity.heartbeat({"offset": index})
@@ -191,7 +218,9 @@ def _process(run_id):
                 raise Problem(402, "BUDGET_EXCEEDED", "Processing stopped before the hard budget cap.")
             envelopes = [
                 {
-                    "sample_id": curated[index + offset]["sample_id"]
+                    "sample_id": curated[index + offset].get(
+                        "sample_id", "smp_" + digest(canonical(sample))[:32]
+                    )
                     if curated
                     else "smp_" + digest(canonical(sample))[:32],
                     "dataset_version_id": version_id,
@@ -207,9 +236,17 @@ def _process(run_id):
                     "license_policy": policy,
                     **(
                         {
-                            "annotation": curated[index + offset]["annotation"],
-                            "annotation_task_id": curated[index + offset]["annotation_task_id"],
-                            "review_status": curated[index + offset]["review_status"],
+                            **(
+                                {"annotation": curated[index + offset]["annotation"]}
+                                if "annotation" in curated[index + offset]
+                                else {}
+                            ),
+                            **(
+                                {"annotation_task_id": curated[index + offset]["annotation_task_id"]}
+                                if "annotation_task_id" in curated[index + offset]
+                                else {}
+                            ),
+                            "review_status": curated[index + offset].get("review_status", "UNREVIEWED_MODEL"),
                         }
                         if curated
                         else {}
@@ -259,6 +296,7 @@ def _process(run_id):
             )
     activity.heartbeat("verifying")
     report = quality_report(samples, schema, order[1]["config"])
+    report["pii"] = pii_report
     if curation_snapshot:
         report["passed"] = report["passed"] and curation_snapshot["quality"]["passed"]
         report["curation"] = curation_snapshot["quality"]
@@ -297,11 +335,36 @@ def publish_run(run_id: str):
             .with_for_update()
         )
         revision = owned(db, RecipeRevision, run.recipe_revision_id, run.organization_id)
+        source_kind = compile_recipe(revision.definition)[0]["type"]
+        try:
+            governance = check_publication_policy(db, target, source_kind)
+            if run.checkpoint.get("admitted_policy", governance)["sha256"] != governance["sha256"]:
+                raise Problem(
+                    409,
+                    "POLICY_CHANGED",
+                    "Policy changed before publication; retry under the current policy.",
+                )
+        except Problem as error:
+            terminate(db, run, "FAILED", error.code, error.message)
+            return
         if target.policy.get("allowed_training_use") is not True:
             terminate(db, run, "FAILED", "POLICY_BLOCKED", "Publication rights are unavailable.")
             return
         run.status = "PUBLISHING"
+        from .references import reference_lock
+
+        reference_lock(db, run.organization_id)
         raw = b"".join(read_artifact(chunk) for chunk in run.checkpoint["chunks"])
+        from .evaluation import holdout_lock, reject_contamination
+
+        holdout_lock(db, run.organization_id)
+        try:
+            reject_contamination(
+                db, run.organization_id, [item["payload"] for item in parse_jsonl(raw)], target
+            )
+        except Problem as error:
+            terminate(db, run, "FAILED", error.code, error.message)
+            return
         data_artifact = put_immutable(run.organization_id, raw, "application/x-ndjson")
         number = (
             db.scalar(
@@ -314,6 +377,41 @@ def publish_run(run_id: str):
         version_id = "ver_" + run.id.removeprefix("run_")
         curation_evidence = {}
         order = compile_recipe(revision.definition)
+        if source_kind in {"teacher", "image_generate"}:
+            from .models import ProviderConnection
+            from .providers import require_provider
+
+            connection = db.scalar(
+                select(ProviderConnection)
+                .where(
+                    ProviderConnection.id == order[0]["config"]["connection_id"],
+                    ProviderConnection.organization_id == run.organization_id,
+                )
+                .with_for_update()
+            )
+            try:
+                require_provider(connection, "structured_text" if source_kind == "teacher" else "image")
+            except Problem as error:
+                terminate(db, run, "FAILED", error.code, error.message)
+                return
+        if source_kind == "simulate":
+            rendered = parse_jsonl(raw)
+            categories = sorted(
+                {box["label"] for sample in rendered for box in sample["annotation"]["boxes"]}
+            )
+            data_card = {
+                "purpose": revision.definition["name"],
+                "intended_use": "User-declared synthetic perception training",
+                "limitations": "Scripted primitive scenes and visible-mask boxes; no robot dynamics or real-world accuracy claim.",
+                "content_risks": "Procedural geometry only; no external assets.",
+                "restrictions": target.policy,
+                "source": run.checkpoint["source_metadata"],
+            }
+            curation_evidence = {
+                "data_card": data_card,
+                "annotation_categories": categories,
+                "exports": image_exports(run.organization_id, rendered, categories, data_card),
+            }
         if order[0]["type"] == "curate":
             curation = owned(db, Curation, order[0]["config"]["curation_id"], run.organization_id)
             curated, snapshot = frozen_input(curation, target)
@@ -369,6 +467,8 @@ def publish_run(run_id: str):
                 "source_sha256": CODE_DIGEST,
             },
             "code_revision": "worktree:sha256:" + CODE_DIGEST,
+            "governance_policy": governance,
+            "source_execution": run.checkpoint.get("source_metadata"),
             **curation_evidence,
         }
         manifest_bytes = canonical(manifest)
@@ -385,6 +485,9 @@ def publish_run(run_id: str):
         )
         db.add(version)
         db.flush()
+        from .evaluation import index_version
+
+        index_version(db, version, parse_jsonl(raw))
         db.add(
             Audit(
                 id=uid("aud"),
@@ -459,6 +562,16 @@ async def dispatch(client):
                                 DatasetWorkflow.run,
                                 row.resource_id,
                                 id=f"dataset:{row.resource_id}",
+                                task_queue="foundry-cpu",
+                            )
+                        except WorkflowAlreadyStartedError:
+                            pass
+                    elif row.kind == "erasure":
+                        try:
+                            await client.start_workflow(
+                                ArtifactErasureWorkflow.run,
+                                row.resource_id,
+                                id=f"erasure:{row.resource_id}",
                                 task_queue="foundry-cpu",
                             )
                         except WorkflowAlreadyStartedError:
@@ -554,8 +667,8 @@ async def main():
     async with Worker(
         client,
         task_queue="foundry-cpu",
-        workflows=[DatasetWorkflow],
-        activities=[process_run, publish_run, fail_run],
+        workflows=[DatasetWorkflow, ArtifactErasureWorkflow],
+        activities=[process_run, publish_run, fail_run, erase_artifacts, fail_erasure],
         activity_executor=ThreadPoolExecutor(max_workers=2),
         max_concurrent_activities=2,
     ):

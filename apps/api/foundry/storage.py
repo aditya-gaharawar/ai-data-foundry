@@ -1,4 +1,7 @@
 import hashlib
+import json
+from functools import lru_cache
+from pathlib import Path
 
 import boto3
 from botocore.config import Config
@@ -76,10 +79,28 @@ def put_immutable(organization_id: str, payload: bytes, content_type: str) -> di
     }
 
 
+@lru_cache(maxsize=2)
+def restore_map(path: str):
+    location = Path(path).resolve()
+    if not location.is_relative_to(Path(".local/backups").resolve()) or location.stat().st_mode & 0o077:
+        raise RuntimeError("Recovery version maps must be private operator files under .local/backups.")
+    return json.loads(location.read_text())
+
+
 def read_artifact(artifact: dict) -> bytes:
     args = {"Bucket": settings().s3_bucket, "Key": artifact["key"]}
     if artifact.get("version_id"):
         args["VersionId"] = artifact["version_id"]
+        if settings().s3_restore_map_file:
+            key = artifact["key"] + "\0" + artifact["version_id"]
+            mapping = restore_map(settings().s3_restore_map_file)
+            if key not in mapping:
+                raise Problem(
+                    409,
+                    "RECOVERY_VERSION_MISSING",
+                    "This artifact was not included in the operator's recovery snapshot.",
+                )
+            args["VersionId"] = mapping[key]
     data = client().get_object(**args)["Body"].read()
     if hashlib.sha256(data).hexdigest() != artifact["sha256"] or len(data) != artifact["bytes"]:
         raise Problem(409, "ARTIFACT_CORRUPT", "The artifact no longer matches the immutable manifest.")

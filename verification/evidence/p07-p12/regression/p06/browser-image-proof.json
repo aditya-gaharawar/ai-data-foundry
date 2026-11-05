@@ -1,0 +1,68 @@
+{
+  "dataset_path": "/datasets/ds_647b77f0e4a64a6fb0d5ca1d008f70f6",
+  "curation_path": "/curation/cur_4e68b0df029a443383a77153bb2e1465",
+  "task_path": "/curation/tasks/ant_8d4919f695f846da9931bd2d88581027",
+  "reviewed_box": [
+    8,
+    6,
+    32,
+    24
+  ],
+  "exports": {
+    "coco": {
+      "sha256": "5ba1ab92ce422732846dda2b3896877263de6aa392ac728e7fff0f0803164555",
+      "files": [
+        "annotations.json",
+        "data-card.json",
+        "images/smp_2fdd191ec3ded6eef436b9d3bfc135d1.png"
+      ],
+      "annotations": {
+        "annotations": [
+          {
+            "area": 768,
+            "bbox": [
+              8,
+              6,
+              32,
+              24
+            ],
+            "category_id": 1,
+            "id": 1,
+            "image_id": 1,
+            "iscrowd": 0
+          }
+        ],
+        "categories": [
+          {
+            "id": 1,
+            "name": "object"
+          },
+          {
+            "id": 2,
+            "name": "other"
+          }
+        ],
+        "images": [
+          {
+            "file_name": "images/smp_2fdd191ec3ded6eef436b9d3bfc135d1.png",
+            "height": 48,
+            "id": 1,
+            "width": 64
+          }
+        ]
+      }
+    },
+    "yolo": {
+      "sha256": "d89f30bb66632fd84d94374f19cd63ae3bb5f9b4591ce1d84a8be49066bac8a9",
+      "files": [
+        "data-card.json",
+        "data.yaml",
+        "images/smp_2fdd191ec3ded6eef436b9d3bfc135d1.png",
+        "labels/smp_2fdd191ec3ded6eef436b9d3bfc135d1.txt"
+      ],
+      "annotations": [
+        "0 0.375 0.375 0.5 0.5\n"
+      ]
+    }
+  }
+}

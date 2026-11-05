@@ -25,6 +25,8 @@ async function proxy(
     "x-csrf-token",
     "x-organization-id",
     "origin",
+    "if-match",
+    "x-lease-token",
   ]) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
@@ -51,6 +53,7 @@ async function proxy(
       "x-content-sha256",
       "cache-control",
       "location",
+      "etag",
     ]) {
       const value = result.headers.get(name);
       if (value) outgoing.set(name, value);
@@ -72,4 +75,10 @@ async function proxy(
     );
   }
 }
-export { proxy as GET, proxy as POST, proxy as PATCH, proxy as DELETE };
+export {
+  proxy as GET,
+  proxy as POST,
+  proxy as PUT,
+  proxy as PATCH,
+  proxy as DELETE,
+};

@@ -42,6 +42,23 @@ def auth():
         typer.echo(json.dumps(api.request("GET", "/v1/me"), indent=2))
 
 
+@app.command("api")
+def api_request(method: str, path: str, body: Path | None = None, idempotency_key: str | None = None):
+    """Call any /v1 endpoint, including providers, compute, evaluation and governance."""
+    method = method.upper()
+    if (
+        method not in {"GET", "POST", "PATCH", "PUT", "DELETE"}
+        or not path.startswith("/v1/")
+        or any(part in {".", ".."} for part in path.split("/"))
+    ):
+        raise typer.BadParameter("Use a supported HTTP method and an absolute /v1/ API path.")
+    with client() as api:
+        value = api.request(
+            method, path, json.loads(body.read_text()) if body else None, idempotency_key=idempotency_key
+        )
+        typer.echo(json.dumps(value, indent=2))
+
+
 @datasets.command("list")
 def list_datasets():
     with client() as api:

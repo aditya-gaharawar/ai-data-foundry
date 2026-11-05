@@ -4,15 +4,17 @@ from typing import Any
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Computed,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
+    Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import Base, Record
@@ -78,6 +80,10 @@ class Dataset(TenantRecord, Base):
     sample_schema: Mapped[dict[str, Any]] = mapped_column(JSONB)
     policy: Mapped[dict[str, Any]] = mapped_column(JSONB)
     archived: Mapped[bool] = mapped_column(Boolean, default=False)
+    protection: Mapped[str] = mapped_column(String(30), default="standard", server_default="standard")
+    legal_hold: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    erased_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    governance_revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
 
 
 class Upload(TenantRecord, Base):
@@ -276,6 +282,184 @@ class AnnotationReview(TenantRecord, Base):
     decision: Mapped[str] = mapped_column(String(30))
     annotation: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     note: Mapped[str] = mapped_column(Text)
+
+
+class ProviderConnection(TenantRecord, Base):
+    __tablename__ = "provider_connections"
+    name: Mapped[str] = mapped_column(String(160))
+    kind: Mapped[str] = mapped_column(String(40))
+    model_ref: Mapped[str] = mapped_column(String(200))
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    rights: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    secret_encrypted: Mapped[str | None] = mapped_column(Text)
+    approved_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class ComputePool(TenantRecord, Base):
+    __tablename__ = "compute_pools"
+    name: Mapped[str] = mapped_column(String(160))
+    scheduler: Mapped[str] = mapped_column(String(30))
+    capabilities: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class ComputeAgent(TenantRecord, Base):
+    __tablename__ = "compute_agents"
+    pool_id: Mapped[str] = mapped_column(ForeignKey("compute_pools.id"))
+    name: Mapped[str] = mapped_column(String(160))
+    secret_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    capabilities: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ComputeJob(TenantRecord, Base):
+    __tablename__ = "compute_jobs"
+    pool_id: Mapped[str] = mapped_column(ForeignKey("compute_pools.id"))
+    version_id: Mapped[str] = mapped_column(ForeignKey("dataset_versions.id"))
+    kind: Mapped[str] = mapped_column(String(40))
+    requirements: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(String(30), default="QUEUED", index=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=0)
+    lease_agent_id: Mapped[str | None] = mapped_column(ForeignKey("compute_agents.id"))
+    lease_secret_hash: Mapped[str | None] = mapped_column(String(64))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    error: Mapped[str | None] = mapped_column(Text)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Benchmark(TenantRecord, Base):
+    __tablename__ = "benchmarks"
+    name: Mapped[str] = mapped_column(String(160))
+    version_id: Mapped[str] = mapped_column(ForeignKey("dataset_versions.id"))
+    external_ref: Mapped[str] = mapped_column(String(400))
+    content_sha256: Mapped[str] = mapped_column(String(64))
+    source_kind: Mapped[str] = mapped_column(String(40))
+    policy: Mapped[dict[str, Any]] = mapped_column(JSONB)
+
+
+class Evaluation(TenantRecord, Base):
+    __tablename__ = "evaluations"
+    version_id: Mapped[str] = mapped_column(ForeignKey("dataset_versions.id"))
+    benchmark_id: Mapped[str] = mapped_column(ForeignKey("benchmarks.id"))
+    model_ref: Mapped[str] = mapped_column(String(200))
+    external_run_ref: Mapped[str] = mapped_column(String(400))
+    metrics: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    artifact: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    imported_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+
+
+class Feedback(TenantRecord, Base):
+    __tablename__ = "training_feedback"
+    evaluation_id: Mapped[str] = mapped_column(ForeignKey("evaluations.id"))
+    proposal: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(String(30), default="DRAFT")
+    decided_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    decision_note: Mapped[str | None] = mapped_column(Text)
+
+
+class SearchEntry(TenantRecord, Base):
+    __tablename__ = "search_entries"
+    __table_args__ = (
+        UniqueConstraint("version_id", "sample_index"),
+        Index("ix_search_entries_vector", "search_vector", postgresql_using="gin"),
+    )
+    version_id: Mapped[str] = mapped_column(ForeignKey("dataset_versions.id"))
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    sample_index: Mapped[int] = mapped_column(Integer)
+    sample_id: Mapped[str] = mapped_column(String(100))
+    content_hash: Mapped[str] = mapped_column(String(64), index=True, default="", server_default="")
+    excerpt: Mapped[str] = mapped_column(String(1000))
+    search_text: Mapped[str] = mapped_column(Text)
+    search_vector: Mapped[Any] = mapped_column(
+        TSVECTOR, Computed("to_tsvector('simple'::regconfig, search_text)", persisted=True)
+    )
+
+
+class GovernancePolicy(TenantRecord, Base):
+    __tablename__ = "governance_policies"
+    __table_args__ = (UniqueConstraint("organization_id", "number"),)
+    number: Mapped[int] = mapped_column(Integer)
+    definition: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+
+
+class ApprovalRequest(TenantRecord, Base):
+    __tablename__ = "approval_requests"
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    action: Mapped[str] = mapped_column(String(40))
+    requested_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    decided_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(String(30), default="PENDING")
+    note: Mapped[str] = mapped_column(Text)
+    decision_note: Mapped[str | None] = mapped_column(Text)
+
+
+class ErasureRequest(TenantRecord, Base):
+    __tablename__ = "erasure_requests"
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
+    requested_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    approved_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    ready_after: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(30), default="PENDING_APPROVAL")
+    reason: Mapped[str] = mapped_column(Text)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+
+
+class ScimToken(TenantRecord, Base):
+    __tablename__ = "scim_tokens"
+    name: Mapped[str] = mapped_column(String(160))
+    secret_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    allowed_domain: Mapped[str] = mapped_column(
+        String(254), default="foundry.local", server_default="foundry.local"
+    )
+
+
+class ScimIdentity(TenantRecord, Base):
+    __tablename__ = "scim_identities"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "external_id"),
+        UniqueConstraint("organization_id", "user_id"),
+    )
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    external_id: Mapped[str] = mapped_column(String(200))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    attributes: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+
+
+class Reconciliation(TenantRecord, Base):
+    __tablename__ = "reconciliations"
+    report: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+
+
+class Incident(TenantRecord, Base):
+    __tablename__ = "incidents"
+    __table_args__ = (UniqueConstraint("organization_id", "source_ref"),)
+    source_ref: Mapped[str] = mapped_column(String(100))
+    summary: Mapped[str] = mapped_column(String(400))
+    status: Mapped[str] = mapped_column(String(30), default="OPEN")
+    acknowledged_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class OperationalProof(TenantRecord, Base):
+    __tablename__ = "operational_proofs"
+    kind: Mapped[str] = mapped_column(String(40))
+    source_sha256: Mapped[str] = mapped_column(String(64))
+    report: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    operator_signature: Mapped[str] = mapped_column(String(64))
+
+
+class ReadinessReport(TenantRecord, Base):
+    __tablename__ = "readiness_reports"
+    status: Mapped[str] = mapped_column(String(40))
+    report: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
 
 
 # Enforce the tenant component of every resource reference at the database layer.

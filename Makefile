@@ -1,7 +1,7 @@
 .PHONY: bootstrap dev dev-host stop lint test test-integration test-security test-e2e smoke contracts
 bootstrap:
 	python scripts/configure.py
-	uv sync --frozen
+	CC=gcc CXX=g++ CMAKE_ARGS='-DGGML_OPENMP=OFF -DGGML_BLAS=OFF' CMAKE_BUILD_PARALLEL_LEVEL=2 uv sync --frozen $(if $(wildcard .local/models/manifest.json),--extra local-model,)
 	pnpm install --frozen-lockfile
 	pnpm exec playwright install chromium --only-shell
 	docker compose up -d --wait postgres minio temporal
@@ -33,3 +33,14 @@ smoke:
 contracts:
 	uv run python scripts/contracts.py
 	pnpm generate:types
+local-model:
+	CC=gcc CXX=g++ CMAKE_ARGS='-DGGML_OPENMP=OFF -DGGML_BLAS=OFF' CMAKE_BUILD_PARALLEL_LEVEL=2 uv sync --frozen --extra local-model
+	uv run --no-sync python scripts/setup_local_model.py
+blender:
+	uv run python scripts/setup_blender.py --env-output .local/blender.env
+test-recovery:
+	uv run python scripts/operational_checks.py restore
+test-load:
+	uv run python scripts/operational_checks.py load
+scan-security:
+	uv run python scripts/security_review.py

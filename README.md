@@ -10,8 +10,12 @@ and real COCO/YOLO image bundles. Follow [the curation guide](docs/runbooks/cura
 
 The original V2 handoff remains in this repository. Its original README is in
 `docs/handoff/README.md`. Read `BUILD_LOG.md` for executed evidence and
-`verification/FEATURE_MATRIX.csv` for precise feature status. P07–P12 remain
-later phases; this is not a production release.
+`verification/FEATURE_MATRIX.csv` for precise feature status. P07–P12 now add
+permitted local model inference, real Blender perception scenes and a 3D viewer,
+outbound compute leases, evaluation/search/feedback, governance/SCIM, artifact
+erasure, ledger operations and signed local readiness/recovery evidence. See
+[the expansion guide](docs/runbooks/expansion.md). This is a local candidate;
+external integrations and production release remain blocked.
 
 ## Start
 
@@ -22,6 +26,10 @@ Docker Compose v2 and Make. Initial setup needs dependency registry access.
 make bootstrap
 make dev
 ```
+
+Optional engines: `make local-model` installs the pinned licensed CPU model;
+`make blender` verifies Blender 4.3.2. Missing optional engines report their
+dependency blocker. Native weights and runtimes are not bundled in source ZIPs.
 
 Open **http://localhost:3000**. API documentation is at
 http://localhost:8000/v1/docs; the Temporal development UI is at
@@ -133,7 +141,15 @@ Actions is configured, with no remote execution claimed until a repo is connecte
 - Authenticated, tenant-bound signed export grants.
 - Local users and user-owned scoped API keys; production identity deferred.
 - RustFS provides tested S3 storage because MinIO registries were unavailable.
-- No paid calls, GPU jobs, simulations, enterprise billing or deployments.
+- Real CPU model and Blender operators; external image providers, GPU/Isaac,
+  Kubernetes/Kueue, Slurm, SSO and enterprise invoicing remain blocked.
+- Native PII patterns, exact holdout hashes and artifact erasure have explicit
+  limits; full safety/compliance or scientific model-quality claims are not made.
+- Local metadata/object recovery and a bounded read load test; staging,
+  independent pentest, production SLA and deployment are unverified.
+- The optional model wrapper retains an unfixed diskcache advisory; disk caching
+  is refused. Cryptography/Pillow updates and actual scans are recorded in evidence.
+- No paid calls, external compute provisioning or production deployment.
 
 See `docs/decisions/`, `docs/runbooks/local-operations.md` and the handoff phase
 files for implementation decisions and remaining release gates.

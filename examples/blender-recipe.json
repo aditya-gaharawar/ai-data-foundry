@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "name": "Original Blender perception frames",
+  "nodes": [
+    {"id": "source", "type": "simulate", "config": {"engine": "blender.procedural@1", "object_type": "cube", "count": 1, "frames_per_scene": 2, "resolution": 128, "fps": 10, "seed": 42, "render_samples": 4}},
+    {"id": "validate", "type": "validate", "config": {"minimum_samples": 2, "max_duplicate_ratio": 0, "max_invalid_ratio": 0}},
+    {"id": "publish", "type": "publish", "config": {}}
+  ],
+  "edges": [{"from": "source", "to": "validate"}, {"from": "validate", "to": "publish"}],
+  "budget": {"currency": "USD", "maximum": 1}
+}

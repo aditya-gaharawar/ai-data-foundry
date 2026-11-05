@@ -1,0 +1,25 @@
+pnpm test:e2e
+$ playwright test
+
+Running 16 tests using 1 worker
+
+(node:112436) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/core.spec.ts:30:5 › create → durable run → quality → immutable version → real JSONL download (16.3s)
+  ✓   2 tests/e2e/core.spec.ts:108:5 › administrator provisions a separate viewer account and permissions apply (12.9s)
+  ✓   3 tests/e2e/core.spec.ts:140:5 › priority routes are responsive, accessible, and support both themes (55.6s)
+  ✓   4 tests/e2e/core.spec.ts:195:5 › keyboard palette, mobile navigation, errors and logout (6.9s)
+  ✓   5 tests/e2e/core.spec.ts:252:5 › browser multipart upload reaches a verified version and escapes sample HTML (13.9s)
+  ✓   6 tests/e2e/curation.spec.ts:86:5 › image upload → box review → data card → durable publication → matching COCO and YOLO (1.4m)
+  ✓   7 tests/e2e/curation.spec.ts:285:5 › two independent labelers correct, disagree, and receive independent adjudication (33.7s)
+  ✓   8 tests/e2e/expansion.spec.ts:134:5 › Teacher Studio records rights and launches genuine local inference (16.6s)
+  ✓   9 tests/e2e/expansion.spec.ts:207:5 › Simulation Studio renders frames and shows a verified protected 3D scene (15.6s)
+  ✓  10 tests/e2e/expansion.spec.ts:250:5 › Compute console enrolls an actual outbound verifier and records its result (10.4s)
+  ✓  11 tests/e2e/expansion.spec.ts:311:5 › Evaluations console compares versions, imports fixture counts, and saves approved feedback (20.1s)
+  ✓  12 tests/e2e/expansion.spec.ts:444:5 › Governance console records policy, legal hold, independent request, and SCIM revocation (10.4s)
+  ✓  13 tests/e2e/expansion.spec.ts:514:5 › Governance erasure previews a sealed plan and completes after independent approval (22.4s)
+  ✓  14 tests/e2e/expansion.spec.ts:614:5 › Operations console persists reconciliation, incidents, and signed readiness (7.6s)
+  ✓  15 tests/e2e/expansion.spec.ts:645:5 › All expansion pages are accessible and fit desktop, tablet, mobile, and 200% zoom (1.1m)
+  ✓  16 tests/e2e/keyboard.spec.ts:19:5 › keyboard-only lifecycle from sign-in through JSONL export (21.1s)
+
+  16 passed (6.9m)

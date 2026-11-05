@@ -43,7 +43,9 @@ commands = {
         "--no-access-log",
     ],
     "worker": [sys.executable, "-m", "foundry.worker"],
-    "web": ["pnpm", "dev"],
+    "web": ["pnpm", "--filter", "@datafoundry/web", "start"]
+    if os.environ.get("FOUNDRY_WEB_MODE") == "production"
+    else ["pnpm", "dev"],
     "receiver": [sys.executable, "scripts/webhook_receiver.py"],
 }
 processes = {}

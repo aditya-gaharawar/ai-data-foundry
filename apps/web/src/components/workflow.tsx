@@ -30,6 +30,7 @@ import { date, money, shortId } from "@/lib/api";
 import { useResource, useWorkspace } from "./context";
 import {
   Button,
+  Code,
   Copy,
   Empty,
   ErrorNotice,
@@ -212,7 +213,14 @@ export function WorkflowEditor({ id }: { id: string }) {
     }
   }, [json]);
   const source = parsed?.nodes.find((node) =>
-    ["ingest", "generate", "curate"].includes(node.type),
+    [
+      "ingest",
+      "generate",
+      "curate",
+      "teacher",
+      "image_generate",
+      "simulate",
+    ].includes(node.type),
   );
   const sourceUpload = useResource<Upload>(
     `/uploads/${encodeURIComponent(String(source?.config.upload_id || "none"))}`,
@@ -260,7 +268,14 @@ export function WorkflowEditor({ id }: { id: string }) {
       return;
     }
     const target = datasets.data?.items.find(
-      (item) => id === "new" || item.project_id === existing.data?.project_id,
+      (item) =>
+        !item.archived &&
+        item.protection !== "holdout" &&
+        item.modality ===
+          (["simulate", "image_generate"].includes(source?.type || "")
+            ? "image"
+            : "text") &&
+        (id === "new" || item.project_id === existing.data?.project_id),
     );
     if (target) {
       setDatasetId(target.id);
@@ -291,7 +306,7 @@ export function WorkflowEditor({ id }: { id: string }) {
         id: node.id,
         position: { x: index * 205, y: 70 },
         data: {
-          label: `${String(index + 1).padStart(2, "0")}  ${node.type === "generate" ? "Generate text" : node.type === "ingest" ? "Ingest upload" : node.type === "curate" ? "Reviewed source" : node.type === "validate" ? "Quality gates" : node.type === "publish" ? "Publish version" : "Export JSONL"}`,
+          label: `${String(index + 1).padStart(2, "0")}  ${node.type === "generate" ? "Generate text" : node.type === "ingest" ? "Ingest upload" : node.type === "curate" ? "Reviewed source" : node.type === "teacher" ? "Teacher generation" : node.type === "image_generate" ? "Image provider" : node.type === "simulate" ? "Blender simulation" : node.type === "validate" ? "Quality gates" : node.type === "publish" ? "Publish version" : "Export JSONL"}`,
         },
         selected: selectedNode === node.id,
       })),
@@ -540,7 +555,16 @@ export function WorkflowEditor({ id }: { id: string }) {
                 <span>Source</span>
                 <select
                   value={source?.type || "generate"}
-                  disabled={!canWrite || !source || source.type === "curate"}
+                  disabled={
+                    !canWrite ||
+                    !source ||
+                    [
+                      "curate",
+                      "teacher",
+                      "image_generate",
+                      "simulate",
+                    ].includes(source.type)
+                  }
                   onChange={(event) =>
                     update((value) => {
                       const node = value.nodes.find(
@@ -570,6 +594,16 @@ export function WorkflowEditor({ id }: { id: string }) {
                   {source?.type === "curate" && (
                     <option value="curate">Frozen human-reviewed source</option>
                   )}
+                  {source &&
+                    ["teacher", "image_generate", "simulate"].includes(
+                      source.type,
+                    ) && (
+                      <option value={source.type}>
+                        {source.type === "simulate"
+                          ? "Blender simulation"
+                          : "Permitted model generation"}
+                      </option>
+                    )}
                 </select>
               </label>
               {source?.type === "generate" ? (
@@ -608,6 +642,20 @@ export function WorkflowEditor({ id }: { id: string }) {
                       }
                     />
                   </label>
+                </div>
+              ) : source &&
+                ["teacher", "image_generate", "simulate"].includes(
+                  source.type,
+                ) ? (
+                <div className="notice">
+                  <Link
+                    href={
+                      source.type === "simulate" ? "/simulations" : "/teacher"
+                    }
+                  >
+                    Configure a new source in its studio
+                  </Link>
+                  <Code value={source.config} />
                 </div>
               ) : source?.type === "curate" ? (
                 <div className="notice">

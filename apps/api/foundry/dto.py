@@ -21,6 +21,10 @@ class DatasetOut(BaseModel):
     archived: bool
     created_at: datetime
     versions_count: int | None = None
+    protection: str = "standard"
+    legal_hold: bool = False
+    erased_at: datetime | None = None
+    governance_revision: int = 1
 
 
 class VersionOut(BaseModel):

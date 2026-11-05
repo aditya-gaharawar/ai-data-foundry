@@ -7,6 +7,20 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class Accelerator(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    model: str = Field(..., alias="model")
+    count: int | None = Field(None, alias="count")
+    memory_gib: float | None = Field(None, alias="memory_gib")
+    rt_cores: bool | None = Field(None, alias="rt_cores")
+
+
+class AgentCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    pool_id: str = Field(..., alias="pool_id")
+    name: str = Field(..., alias="name")
+
+
 class AnnotationTaskOut(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     id: str = Field(..., alias="id")
@@ -31,15 +45,48 @@ class AnnotationTaskOut(BaseModel):
     media_url: str | None = Field(None, alias="media_url")
 
 
+class ApprovalDecision(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    decision: Literal["approve", "reject"] = Field(..., alias="decision")
+    note: str = Field(..., alias="note")
+
+
+class BenchmarkCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    version_id: str = Field(..., alias="version_id")
+    external_ref: str = Field(..., alias="external_ref")
+    source_kind: str = Field(..., alias="source_kind")
+    independent_of_training: bool = Field(..., alias="independent_of_training")
+
+
 class BudgetPatch(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     maximum_usd: float | str = Field(..., alias="maximum_usd")
+
+
+class Capabilities(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    cpu_cores: int | None = Field(None, alias="cpu_cores")
+    memory_gib: float | None = Field(None, alias="memory_gib")
+    accelerators: list[Accelerator] | None = Field(None, alias="accelerators")
+    engines: dict[str, Any] | None = Field(None, alias="engines")
 
 
 class CardUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     expected_revision: int = Field(..., alias="expected_revision")
     data_card: DataCard = Field(..., alias="data_card")
+
+
+class ComputeJobCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    pool_id: str = Field(..., alias="pool_id")
+    version_id: str = Field(..., alias="version_id")
+    kind: str | None = Field(None, alias="kind")
+    cpu_cores: int | None = Field(None, alias="cpu_cores")
+    memory_gib: float | None = Field(None, alias="memory_gib")
+    lease_seconds: int | None = Field(None, alias="lease_seconds")
 
 
 class CurationCreate(BaseModel):
@@ -93,6 +140,15 @@ class DatasetCreate(BaseModel):
     policy: dict[str, Any] | None = Field(None, alias="policy")
 
 
+class DatasetGovernance(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    expected_revision: int = Field(..., alias="expected_revision")
+    action: Literal["protect_holdout", "place_legal_hold", "request_hold_release"] = Field(
+        ..., alias="action"
+    )
+    note: str = Field(..., alias="note")
+
+
 class DatasetOut(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     id: str = Field(..., alias="id")
@@ -106,6 +162,10 @@ class DatasetOut(BaseModel):
     archived: bool = Field(..., alias="archived")
     created_at: str = Field(..., alias="created_at")
     versions_count: int | None = Field(None, alias="versions_count")
+    protection: str | None = Field(None, alias="protection")
+    legal_hold: bool | None = Field(None, alias="legal_hold")
+    erased_at: str | None = Field(None, alias="erased_at")
+    governance_revision: int | None = Field(None, alias="governance_revision")
 
 
 class DatasetPatch(BaseModel):
@@ -113,6 +173,30 @@ class DatasetPatch(BaseModel):
     name: str | None = Field(None, alias="name")
     description: str | None = Field(None, alias="description")
     archived: bool | None = Field(None, alias="archived")
+
+
+class ErasureCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    dataset_id: str = Field(..., alias="dataset_id")
+    trigger: Literal["user_request", "retention_expiry"] | None = Field(None, alias="trigger")
+    reason: str = Field(..., alias="reason")
+
+
+class ErasureExecute(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    confirm_dataset_name: str = Field(..., alias="confirm_dataset_name")
+    plan_sha256: str = Field(..., alias="plan_sha256")
+
+
+class EvaluationCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    version_id: str = Field(..., alias="version_id")
+    benchmark_id: str = Field(..., alias="benchmark_id")
+    model_ref: str = Field(..., alias="model_ref")
+    external_run_ref: str = Field(..., alias="external_run_ref")
+    result: SliceResult = Field(..., alias="result")
+    slices: list[SliceResult] | None = Field(None, alias="slices")
+    evidence_note: str = Field(..., alias="evidence_note")
 
 
 class ExportCreate(BaseModel):
@@ -133,10 +217,29 @@ class ExportOut(BaseModel):
     expires_in: int | None = Field(None, alias="expires_in")
 
 
+class FeedbackCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    evaluation_id: str = Field(..., alias="evaluation_id")
+    maximum_new_samples: int | None = Field(None, alias="maximum_new_samples")
+    maximum_internal_budget_usd: float | None = Field(None, alias="maximum_internal_budget_usd")
+    require_manual_approval: bool | None = Field(None, alias="require_manual_approval")
+
+
+class FeedbackDecision(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    decision: str = Field(..., alias="decision")
+    note: str = Field(..., alias="note")
+
+
 class FreezeCuration(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     expected_revision: int = Field(..., alias="expected_revision")
     approved_for_publication: bool = Field(..., alias="approved_for_publication")
+
+
+class GovernancePolicyCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    definition: PolicyDefinition = Field(..., alias="definition")
 
 
 class KeyCreate(BaseModel):
@@ -156,6 +259,14 @@ class KeyOut(BaseModel):
     revoked: bool = Field(..., alias="revoked")
     created_at: str = Field(..., alias="created_at")
     secret: str | None = Field(None, alias="secret")
+
+
+class LeaseComplete(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    attempt: int = Field(..., alias="attempt")
+    sha256: str = Field(..., alias="sha256")
+    bytes: int = Field(..., alias="bytes")
+    processing_ms: int = Field(..., alias="processing_ms")
 
 
 class Login(BaseModel):
@@ -206,6 +317,12 @@ class Page_KeyOut_(BaseModel):
     next_cursor: str | None = Field(None, alias="next_cursor")
 
 
+class Page_ProviderOut_(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    items: list[ProviderOut] = Field(..., alias="items")
+    next_cursor: str | None = Field(None, alias="next_cursor")
+
+
 class Page_QualityProfileOut_(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     items: list[QualityProfileOut] = Field(..., alias="items")
@@ -242,6 +359,39 @@ class Page_WebhookOut_(BaseModel):
     next_cursor: str | None = Field(None, alias="next_cursor")
 
 
+class PatchOperation(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    op: str = Field(..., alias="op")
+    path: str = Field(..., alias="path")
+    value: Any | None = Field(None, alias="value")
+
+
+class Placement(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    pool_id: str = Field(..., alias="pool_id")
+    engine: Literal["artifact.verify@1", "blender.procedural@1", "isaac.sim", "isaac.lab"] = Field(
+        ..., alias="engine"
+    )
+    cpu_cores: int | None = Field(None, alias="cpu_cores")
+    memory_gib: float | None = Field(None, alias="memory_gib")
+
+
+class PolicyDefinition(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    pii_mode: Literal["allow", "block", "redact"] | None = Field(None, alias="pii_mode")
+    allowed_licenses: list[str] | None = Field(None, alias="allowed_licenses")
+    require_human_review: bool | None = Field(None, alias="require_human_review")
+    erasure_delay_seconds: int | None = Field(None, alias="erasure_delay_seconds")
+    retention_days: int | None = Field(None, alias="retention_days")
+
+
+class PoolCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    scheduler: Literal["agent", "kubernetes", "slurm"] | None = Field(None, alias="scheduler")
+    capabilities: Capabilities | None = Field(None, alias="capabilities")
+
+
 class ProfileConfig(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     dedupe: Literal["none", "exact", "near"] | None = Field(None, alias="dedupe")
@@ -251,6 +401,43 @@ class ProfileConfig(BaseModel):
     minimum_acceptance_ratio: float | None = Field(None, alias="minimum_acceptance_ratio")
     max_duplicate_ratio: float | None = Field(None, alias="max_duplicate_ratio")
     max_near_duplicate_ratio: float | None = Field(None, alias="max_near_duplicate_ratio")
+
+
+class ProofImport(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    kind: Literal["restore", "load", "security", "regression", "rollback"] = Field(..., alias="kind")
+    source_sha256: str = Field(..., alias="source_sha256")
+    report: dict[str, Any] = Field(..., alias="report")
+    operator_signature: str = Field(..., alias="operator_signature")
+
+
+class ProviderCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    kind: Literal["local.gguf", "http.structured", "http.image"] = Field(..., alias="kind")
+    model_ref: str = Field(..., alias="model_ref")
+    endpoint: str | None = Field(None, alias="endpoint")
+    api_secret: str | None = Field(None, alias="api_secret")
+    permitted_training_use: bool = Field(..., alias="permitted_training_use")
+    consent_to_processing: bool = Field(..., alias="consent_to_processing")
+    terms_version: str = Field(..., alias="terms_version")
+    rights_evidence: str = Field(..., alias="rights_evidence")
+
+
+class ProviderOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    id: str = Field(..., alias="id")
+    organization_id: str = Field(..., alias="organization_id")
+    name: str = Field(..., alias="name")
+    kind: str = Field(..., alias="kind")
+    model_ref: str = Field(..., alias="model_ref")
+    config: dict[str, Any] = Field(..., alias="config")
+    rights: dict[str, Any] = Field(..., alias="rights")
+    approved_by: str = Field(..., alias="approved_by")
+    revoked: bool = Field(..., alias="revoked")
+    state: str = Field(..., alias="state")
+    reason: str = Field(..., alias="reason")
+    capabilities: list[str] = Field(..., alias="capabilities")
 
 
 class QualityProfileCreate(BaseModel):
@@ -285,6 +472,19 @@ class RecipeOut(BaseModel):
     created_at: str = Field(..., alias="created_at")
     revision: RevisionOut | None = Field(None, alias="revision")
     revisions: list[RevisionOut] | None = Field(None, alias="revisions")
+
+
+class ResourceOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    id: str = Field(..., alias="id")
+    organization_id: str = Field(..., alias="organization_id")
+    name: str | None = Field(None, alias="name")
+    state: str | None = Field(None, alias="state")
+    status: str | None = Field(None, alias="status")
+    capabilities: dict[str, Any] | None = Field(None, alias="capabilities")
+    reason: str | None = Field(None, alias="reason")
+    agent_token: str | None = Field(None, alias="agent_token")
+    result: dict[str, Any] | None = Field(None, alias="result")
 
 
 class ReviewDecision(BaseModel):
@@ -335,6 +535,48 @@ class RunOut(BaseModel):
     created_at: str = Field(..., alias="created_at")
     started_at: str | None = Field(None, alias="started_at")
     finished_at: str | None = Field(None, alias="finished_at")
+
+
+class ScimName(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    givenName: str | None = Field(None, alias="givenName")
+    familyName: str | None = Field(None, alias="familyName")
+    formatted: str | None = Field(None, alias="formatted")
+
+
+class ScimPatch(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    schemas: list[str] | None = Field(None, alias="schemas")
+    Operations: list[PatchOperation] = Field(..., alias="Operations")
+
+
+class ScimRole(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    value: Literal["Engineer", "Labeler", "Viewer"] | None = Field(None, alias="value")
+
+
+class ScimTokenCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    allowed_domain: str | None = Field(None, alias="allowed_domain")
+
+
+class ScimUser(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    schemas: list[str] | None = Field(None, alias="schemas")
+    externalId: str | None = Field(None, alias="externalId")
+    userName: str = Field(..., alias="userName")
+    displayName: str | None = Field(None, alias="displayName")
+    name: ScimName | None = Field(None, alias="name")
+    active: bool | None = Field(None, alias="active")
+    roles: list[ScimRole] | None = Field(None, alias="roles")
+
+
+class SliceResult(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    correct: int = Field(..., alias="correct")
+    total: int = Field(..., alias="total")
 
 
 class TaskAssignment(BaseModel):
@@ -431,20 +673,34 @@ class WebhookOut(BaseModel):
     signing_secret: str | None = Field(None, alias="signing_secret")
 
 
+Accelerator.model_rebuild()
+AgentCreate.model_rebuild()
 AnnotationTaskOut.model_rebuild()
+ApprovalDecision.model_rebuild()
+BenchmarkCreate.model_rebuild()
 BudgetPatch.model_rebuild()
+Capabilities.model_rebuild()
 CardUpdate.model_rebuild()
+ComputeJobCreate.model_rebuild()
 CurationCreate.model_rebuild()
 CurationOut.model_rebuild()
 DataCard.model_rebuild()
 DatasetCreate.model_rebuild()
+DatasetGovernance.model_rebuild()
 DatasetOut.model_rebuild()
 DatasetPatch.model_rebuild()
+ErasureCreate.model_rebuild()
+ErasureExecute.model_rebuild()
+EvaluationCreate.model_rebuild()
 ExportCreate.model_rebuild()
 ExportOut.model_rebuild()
+FeedbackCreate.model_rebuild()
+FeedbackDecision.model_rebuild()
 FreezeCuration.model_rebuild()
+GovernancePolicyCreate.model_rebuild()
 KeyCreate.model_rebuild()
 KeyOut.model_rebuild()
+LeaseComplete.model_rebuild()
 Login.model_rebuild()
 MemberCreate.model_rebuild()
 MemberPatch.model_rebuild()
@@ -453,21 +709,36 @@ Page_AnnotationTaskOut_.model_rebuild()
 Page_CurationOut_.model_rebuild()
 Page_DatasetOut_.model_rebuild()
 Page_KeyOut_.model_rebuild()
+Page_ProviderOut_.model_rebuild()
 Page_QualityProfileOut_.model_rebuild()
 Page_RecipeOut_.model_rebuild()
 Page_RunOut_.model_rebuild()
 Page_UploadOut_.model_rebuild()
 Page_VersionOut_.model_rebuild()
 Page_WebhookOut_.model_rebuild()
+PatchOperation.model_rebuild()
+Placement.model_rebuild()
+PolicyDefinition.model_rebuild()
+PoolCreate.model_rebuild()
 ProfileConfig.model_rebuild()
+ProofImport.model_rebuild()
+ProviderCreate.model_rebuild()
+ProviderOut.model_rebuild()
 QualityProfileCreate.model_rebuild()
 QualityProfileOut.model_rebuild()
 RecipeCreate.model_rebuild()
 RecipeOut.model_rebuild()
+ResourceOut.model_rebuild()
 ReviewDecision.model_rebuild()
 RevisionOut.model_rebuild()
 RunCreate.model_rebuild()
 RunOut.model_rebuild()
+ScimName.model_rebuild()
+ScimPatch.model_rebuild()
+ScimRole.model_rebuild()
+ScimTokenCreate.model_rebuild()
+ScimUser.model_rebuild()
+SliceResult.model_rebuild()
 TaskAssignment.model_rebuild()
 TaskReopen.model_rebuild()
 UploadComplete.model_rebuild()

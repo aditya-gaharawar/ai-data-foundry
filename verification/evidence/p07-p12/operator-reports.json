@@ -1,0 +1,136 @@
+{
+  "restore": {
+    "kind": "restore",
+    "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+    "report": {
+      "archive_permissions": "0600; private local metadata only",
+      "archive_sha256": "cbc044f23367ee7c97293d2bc2f9abcbbe2f8c533acd65d9984901fad65de9c4",
+      "checks": [
+        "pg_dump/pg_restore into isolated database",
+        "every restored object byte checksum",
+        "immutable version manifest seals",
+        "per-tenant dataset boundaries",
+        "original object-version references mapped without modifying manifests"
+      ],
+      "database_tables_verified": 38,
+      "elapsed_seconds": 31.85,
+      "limits": "Local PostgreSQL+S3 recovery. Temporal dev-server workflow history and external KMS/SSO are not backed up here. Operator secret is a separately managed recovery prerequisite. Maintenance blocks API writes; no active jobs allowed.",
+      "object_bytes_verified": 186342895,
+      "object_versions_verified": 1556,
+      "recorded_at": "2026-11-05T20:04:02.824889+00:00",
+      "restored_api_auth_and_tenant_isolation": "PASS",
+      "restored_api_sample_read": "PASS",
+      "scope": "local",
+      "status": "PASS",
+      "tenant_count": 2,
+      "version_manifests_verified": 161
+    }
+  },
+  "rollback": {
+    "kind": "rollback",
+    "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+    "report": {
+      "archive_sha256": "cbc044f23367ee7c97293d2bc2f9abcbbe2f8c533acd65d9984901fad65de9c4",
+      "checks": [
+        "isolated restored API launched on loopback port 55759",
+        "local password auth",
+        "tenant-negative read",
+        "restored immutable sample read",
+        "isolated API terminated; live 8000 configuration unchanged"
+      ],
+      "limits": "Recovery configuration rehearsal only. No staging release/traffic rollback is claimed.",
+      "recorded_at": "2026-11-05T20:04:03.049720+00:00",
+      "scope": "local",
+      "status": "PASS"
+    }
+  },
+  "load": {
+    "kind": "load",
+    "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+    "report": {
+      "acceptance": "0 non-200 responses; local p95 <5000ms",
+      "concurrency": 4,
+      "elapsed_seconds": 1.0,
+      "errors": 0,
+      "limits": "Single local host, synthetic fixtures, bounded read traffic; not a production SLA.",
+      "p50_ms": 63.79,
+      "p95_ms": 103.83,
+      "recorded_at": "2026-11-05T20:04:05.515093+00:00",
+      "requests": 60,
+      "requests_per_second": 59.75,
+      "scope": "local",
+      "status": "PASS"
+    }
+  },
+  "security": {
+    "kind": "security",
+    "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+    "report": {
+      "checks": {
+        "disk_cache_unconfigured_and_refused": true,
+        "npm_advisories": {
+          "critical": 0,
+          "high": 0,
+          "info": 0,
+          "low": 0,
+          "moderate": 0
+        },
+        "python_packages_checked": 68,
+        "source_files_with_private_values": [],
+        "unreviewed_python_advisories": 0
+      },
+      "identifier_classification": "The documented development S3 access-key ID is a public username, not signing key material. Actual S3 secrets, application secrets and passwords are scanned as private values.",
+      "limits": "Local dependency and source review only; no independent penetration test, native binary audit, container OS scan or compliance certification. The optional diskcache advisory remains a production blocker.",
+      "recorded_at": "2026-11-05T20:02:49.446356+00:00",
+      "remediated": {
+        "cryptography": "50.0.2",
+        "pillow": "13.0.0"
+      },
+      "reviewed_residuals": [
+        {
+          "advisory_ids": [
+            "GHSA-w8v5-vhqr-4h9v",
+            "PYSEC-2026-2447"
+          ],
+          "assessment": "Optional local llama.cpp wrapper imports diskcache but no disk cache is instantiated; no cache paths or pickle data are accepted; native child refuses a configured cache. Unfixed upstream advisory remains in the installed optional dependency. Remove/replace it before production.",
+          "package": "diskcache",
+          "version": "5.6.3"
+        }
+      ],
+      "scope": "local",
+      "status": "PASS"
+    }
+  },
+  "regression": {
+    "kind": "regression",
+    "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+    "report": {
+      "checks": {
+        "bootstrap": "PASS",
+        "contract_drift": "PASS",
+        "fresh_database_restart_tenant_isolation": "PASS",
+        "lint_types": "PASS",
+        "migration_drift": "PASS",
+        "optimized_browser_native_flows": "PASS",
+        "optimized_web_build": "PASS"
+      },
+      "finalization": "Final TOML EOF formatting was normalized; before/after parsed configuration was asserted identical. Application, SDK, test and build behavior is unchanged; operational checks were rerun against the final fingerprint.",
+      "limits": "Local synthetic fixtures and Chromium browser; independent pentest, live external integrations, staging and production SLA remain unverified.",
+      "recorded_at": "2026-11-05T19:52:07.506357+00:00",
+      "repeat_scenarios_not_counted": [
+        "smoke: 1",
+        "final native pipelines: 2",
+        "optimized browser native flows: 2"
+      ],
+      "scope": "local",
+      "status": "PASS",
+      "tests": {
+        "browser": 16,
+        "integration": 23,
+        "security": 13,
+        "unit_contract": 25
+      },
+      "total_unique_tests": 77
+    }
+  }
+}

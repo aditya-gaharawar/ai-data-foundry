@@ -214,6 +214,9 @@ def register(app):
             )
         if target.archived or target.policy.get("allowed_training_use") is not True:
             raise Problem(403, "POLICY_BLOCKED", "Use an active dataset with declared source-use rights.")
+        from .policies import check_publication_policy
+
+        governance = check_publication_policy(db, target, "curate")
         samples = []
         source_bytes = 0
         if body.source_version_id:
@@ -265,7 +268,17 @@ def register(app):
             raise Problem(
                 422, "CURATION_SIZE_LIMIT", "Normalized image bytes are limited to 20 MiB per local session."
             )
+        from .policies import pii_transform
+
+        transformed, pii_report = pii_transform(
+            [sample["payload"] for sample in samples], governance["definition"]["pii_mode"]
+        )
+        samples = [
+            {**sample, "payload": payload} for sample, payload in zip(samples, transformed, strict=True)
+        ]
         report = duplicate_analysis(samples, target.modality, profile.config)
+        report["governance_policy_sha256"] = governance["sha256"]
+        report["pii"] = pii_report
         identifier = uid("cur")
         artifact = put_immutable(
             p.organization_id,

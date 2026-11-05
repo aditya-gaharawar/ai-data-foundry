@@ -6,7 +6,8 @@ import logging
 import math
 import secrets
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Annotated
 
 from botocore.exceptions import ClientError
@@ -14,12 +15,13 @@ from fastapi import Depends, FastAPI, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select, text, tuple_
 from sqlalchemy.orm import Session as DBSession
 from starlette.exceptions import HTTPException
 from temporalio.client import Client as TemporalClient
 
 from . import schemas as s
+from .compute import register as register_compute
 from .config import settings
 from .curation_api import register as register_curation
 from .db import now, session, uid
@@ -37,6 +39,8 @@ from .dto import (
     WebhookOut,
 )
 from .errors import Problem
+from .evaluation import register as register_evaluation
+from .governance import register as register_governance
 from .media import prepare_image
 from .models import (
     ApiKey,
@@ -52,6 +56,7 @@ from .models import (
     Organization,
     Outbox,
     Project,
+    ProviderConnection,
     Recipe,
     RecipeRevision,
     Run,
@@ -63,7 +68,10 @@ from .models import (
     Webhook,
 )
 from .openapi import enrich
+from .operations import register as register_operations
+from .providers import register as register_providers
 from .recipes import GenerateConfig, compile_recipe, parse_jsonl, validate_sample_schema
+from .scim import register as register_scim
 from .security import (
     ROLES,
     SCOPES,
@@ -79,13 +87,14 @@ from .security import (
     validate_webhook_url,
     verify_password,
 )
+from .simulations import register as register_simulations
 from .storage import client as s3client
 from .storage import read_artifact
 
 app = FastAPI(
     title="AI Data Foundry API",
     version="0.1.0",
-    description="Local text/image dataset lifecycle, curation and human review. External engines are unavailable.",
+    description="Local text/image lifecycle, permitted CPU model generation, Blender perception scenes, compute leases, evaluation, governance and operator evidence. Unconfigured external providers, clusters, RTX Isaac and production identity remain blocked.",
     openapi_url="/v1/openapi.json",
     docs_url="/v1/docs",
     redoc_url=None,
@@ -94,14 +103,14 @@ app = FastAPI(
             "description": "Deterministic Problem Details error",
             "content": {"application/problem+json": {"schema": ProblemOut.model_json_schema()}},
         }
-        for code in [400, 401, 402, 403, 404, 409, 422, 429, 500, 503]
+        for code in [400, 401, 402, 403, 404, 409, 410, 412, 413, 422, 428, 429, 500, 503]
     },
 )
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings().origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=[
         "Authorization",
         "Content-Type",
@@ -109,8 +118,10 @@ app.add_middleware(
         "X-CSRF-Token",
         "X-Organization-Id",
         "X-Request-Id",
+        "If-Match",
+        "X-Lease-Token",
     ],
-    expose_headers=["X-Request-Id", "X-Content-SHA256", "Content-Disposition"],
+    expose_headers=["X-Request-Id", "X-Content-SHA256", "Content-Disposition", "ETag", "Location"],
 )
 DB = Annotated[DBSession, Depends(session)]
 Auth = Annotated[Principal, Depends(principal)]
@@ -136,7 +147,34 @@ async def correlation(request: Request, call_next):
     request.state.request_id = uid("req")
     started = time.monotonic()
     try:
-        response = await call_next(request)
+        response = None
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            if Path(".local/maintenance.json").exists() and not request.url.path.startswith(("/v1/auth/",)):
+                response = problem_response(
+                    request,
+                    Problem(
+                        503,
+                        "LOCAL_MAINTENANCE",
+                        "The local operator is taking a consistent recovery snapshot. Retry after maintenance.",
+                    ),
+                )
+            if response is None:
+                body = bytearray()
+                async for chunk in request.stream():
+                    body.extend(chunk)
+                    if len(body) > 1024 * 1024:
+                        response = problem_response(
+                            request,
+                            Problem(
+                                413,
+                                "REQUEST_TOO_LARGE",
+                                "JSON control requests are limited to 1 MiB; dataset uploads use bounded object-storage sessions.",
+                            ),
+                        )
+                        break
+                request._body = bytes(body)
+        if response is None:
+            response = await call_next(request)
     except Exception:
         logger.exception("request_failed request_id=%s", request.state.request_id)
         response = problem_response(
@@ -163,6 +201,18 @@ async def correlation(request: Request, call_next):
 
 
 def problem_response(request, error: Problem):
+    if request.url.path.startswith("/v1/scim/v2/"):
+        return JSONResponse(
+            status_code=error.status,
+            media_type="application/scim+json",
+            content={
+                "schemas": ["urn:ietf:params:scim:api:messages:2.0:Error"],
+                "status": str(error.status),
+                "detail": error.message,
+                "code": error.code,
+                "request_id": getattr(request.state, "request_id", "unknown"),
+            },
+        )
     return JSONResponse(
         status_code=error.status,
         media_type="application/problem+json",
@@ -186,7 +236,10 @@ async def handle_problem(request: Request, error: Problem):
 async def handle_validation(request: Request, error: RequestValidationError):
     # Never echo raw request inputs (passwords, keys, dataset contents) in validation errors.
     message = "; ".join(".".join(map(str, item["loc"])) + ": " + item["msg"] for item in error.errors())
-    return problem_response(request, Problem(422, "VALIDATION_ERROR", message))
+    return problem_response(
+        request,
+        Problem(400 if request.url.path.startswith("/v1/scim/v2/") else 422, "VALIDATION_ERROR", message),
+    )
 
 
 @app.exception_handler(HTTPException)
@@ -199,10 +252,16 @@ async def handle_http(request: Request, error: HTTPException):
     )
 
 
-def get(db: DBSession, cls, identifier: str, org: str):
-    record = db.scalar(select(cls).where(cls.id == identifier, cls.organization_id == org))
+def get(db: DBSession, cls, identifier: str, org: str, *, include_erased=False):
+    query = select(cls).where(cls.id == identifier, cls.organization_id == org)
+    if cls is Dataset and db.info.get("mutation"):
+        query = query.with_for_update().execution_options(populate_existing=True)
+    record = db.scalar(query)
     if not record:
         raise Problem(404, "NOT_FOUND", "Resource not found.")
+    from .policies import enforce_resource
+
+    enforce_resource(db, record, include_erased=include_erased)
     return record
 
 
@@ -228,6 +287,7 @@ def public(record):
         "multipart_id",
         "object_key",
         "object_version",
+        "lease_secret_hash",
     }
     value = {key: getattr(record, key) for key in fields if key not in hidden}
     for key, item in list(value.items()):
@@ -246,13 +306,23 @@ def public(record):
 
 
 def page(db, cls, p, limit=25, cursor=None, extra=()):
-    query = select(cls).where(cls.organization_id == p.organization_id, *extra)
+    from .policies import visible_condition
+
+    query = select(cls).where(cls.organization_id == p.organization_id, visible_condition(cls, p), *extra)
     if cursor:
         value = read_token(cursor)
         if value.get("org") != p.organization_id or value.get("entity") != cls.__tablename__:
             raise Problem(404, "INVALID_CURSOR", "Cursor not found.")
-        query = query.where(cls.id < value["last"])
-    rows = db.scalars(query.order_by(cls.id.desc()).limit(limit + 1)).all()
+        try:
+            stamp = datetime.fromisoformat(value["created_at"])
+            if stamp.tzinfo is None:
+                raise ValueError
+        except (KeyError, TypeError, ValueError):
+            raise Problem(
+                422, "INVALID_CURSOR", "Refresh the list to obtain a current pagination cursor."
+            ) from None
+        query = query.where(tuple_(cls.created_at, cls.id) < tuple_(stamp, value["last"]))
+    rows = db.scalars(query.order_by(cls.created_at.desc(), cls.id.desc()).limit(limit + 1)).all()
     more = len(rows) > limit
     rows = rows[:limit]
     token = (
@@ -261,6 +331,7 @@ def page(db, cls, p, limit=25, cursor=None, extra=()):
                 "org": p.organization_id,
                 "entity": cls.__tablename__,
                 "last": rows[-1].id,
+                "created_at": rows[-1].created_at.isoformat(),
                 "exp": int(time.time()) + 86400,
             }
         )
@@ -686,6 +757,9 @@ def complete_upload(upload_id: str, body: s.UploadComplete, request: Request, p:
         )
     try:
         if record.content_type.startswith("image/"):
+            from .references import reference_lock
+
+            reference_lock(db, p.organization_id)
             record.media = prepare_image(raw, record.content_type, p.organization_id)
             samples = [{"image": record.media}]
         else:
@@ -787,6 +861,8 @@ def create_recipe(body: s.RecipeCreate, request: Request, p: Auth, db: DB):
         get(db, Upload, order[0]["config"]["upload_id"], p.organization_id)
     elif order[0]["type"] == "curate":
         get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
+    elif order[0]["type"] in {"teacher", "image_generate"}:
+        get(db, ProviderConnection, order[0]["config"]["connection_id"], p.organization_id)
     record = Recipe(
         id=uid("rcp"),
         organization_id=p.organization_id,
@@ -819,6 +895,8 @@ def revise_recipe(recipe_id: str, body: dict, request: Request, p: Auth, db: DB)
         get(db, Upload, order[0]["config"]["upload_id"], p.organization_id)
     elif order[0]["type"] == "curate":
         get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
+    elif order[0]["type"] in {"teacher", "image_generate"}:
+        get(db, ProviderConnection, order[0]["config"]["connection_id"], p.organization_id)
     record = RecipeRevision(
         id=uid("rev"),
         organization_id=p.organization_id,
@@ -836,6 +914,21 @@ def estimate(db, p, revision):
     order = compile_recipe(revision.definition)
     if order[0]["type"] == "generate":
         count = GenerateConfig.model_validate(order[0]["config"]).count
+    elif order[0]["type"] in {"teacher", "image_generate"}:
+        from .providers import ImageGenerateConfig, TeacherConfig, require_provider
+
+        config = (TeacherConfig if order[0]["type"] == "teacher" else ImageGenerateConfig).model_validate(
+            order[0]["config"]
+        )
+        connection = get(db, ProviderConnection, config.connection_id, p.organization_id)
+        require_provider(connection, "structured_text" if order[0]["type"] == "teacher" else "image")
+        count = config.count
+    elif order[0]["type"] == "simulate":
+        from .simulations import SimulationConfig, require_simulator
+
+        config = SimulationConfig.model_validate(order[0]["config"]).model_dump()
+        require_simulator(config)
+        count = config["count"] * config["frames_per_scene"]
     elif order[0]["type"] == "curate":
         source = get(db, Curation, order[0]["config"]["curation_id"], p.organization_id)
         if source.state != "FROZEN":
@@ -888,6 +981,18 @@ def submit_run(body: s.RunCreate, request: Request, p: Auth, db: DB):
         )
     count, cost = estimate(db, p, revision)
     order = compile_recipe(revision.definition)
+    from .policies import check_publication_policy
+
+    admitted_policy = check_publication_policy(db, target, order[0]["type"])
+    if (
+        order[0]["type"] == "teacher"
+        and target.modality != "text"
+        or order[0]["type"] in {"simulate", "image_generate"}
+        and target.modality != "image"
+    ):
+        raise Problem(
+            422, "MODALITY_MISMATCH", "This source engine does not produce the target dataset modality."
+        )
     if order[0]["type"] == "generate" and target.modality != "text":
         raise Problem(
             422,
@@ -925,7 +1030,11 @@ def submit_run(body: s.RunCreate, request: Request, p: Auth, db: DB):
         max_budget_micro=min(budget, recipe_budget),
         reserved_micro=cost,
         sample_count=count,
-        checkpoint={"chunks": [], "rate_micro_usd": settings().local_rate_micro_usd},
+        checkpoint={
+            "chunks": [],
+            "rate_micro_usd": settings().local_rate_micro_usd,
+            "admitted_policy": admitted_policy,
+        },
     )
     db.add(record)
     db.flush()
@@ -1008,6 +1117,9 @@ def cancel_run(run_id: str, request: Request, p: Auth, db: DB):
     )
     if not record:
         raise Problem(404, "NOT_FOUND", "Run not found.")
+    from .policies import enforce_resource
+
+    enforce_resource(db, record)
     if record.status in ("SUCCEEDED", "FAILED", "CANCELLED"):
         raise Problem(409, "RUN_TERMINAL", "This run has already finished.")
     record.cancel_requested = True
@@ -1393,12 +1505,21 @@ def audit_events(p: Auth, db: DB, limit: int = Query(25, ge=1, le=100), cursor: 
 @app.get("/v1/overview", tags=["Overview"])
 def overview(p: Auth, db: DB):
     p.require("datasets:read")
+    from .policies import visible_condition
+
     counts = {
-        name: db.scalar(select(func.count()).select_from(cls).where(cls.organization_id == p.organization_id))
+        name: db.scalar(
+            select(func.count())
+            .select_from(cls)
+            .where(cls.organization_id == p.organization_id, visible_condition(cls, p))
+        )
         for name, cls in [("datasets", Dataset), ("versions", Version), ("runs", Run)]
     }
     recent = db.scalars(
-        select(Run).where(Run.organization_id == p.organization_id).order_by(Run.created_at.desc()).limit(5)
+        select(Run)
+        .where(Run.organization_id == p.organization_id, visible_condition(Run, p))
+        .order_by(Run.created_at.desc())
+        .limit(5)
     ).all()
     heartbeat = db.get(Heartbeat, "cpu")
     worker_ready = bool(heartbeat and heartbeat.seen_at > now() - timedelta(seconds=20))
@@ -1410,9 +1531,9 @@ def overview(p: Auth, db: DB):
         "local_webhook_url": settings().local_webhook_url,
         "capabilities": {
             "text_cpu": worker_ready,
-            "model_providers": "BLOCKED_EXTERNAL",
+            "model_providers": "SEE_PROVIDER_CATALOG",
             "gpu": "BLOCKED_EXTERNAL",
-            "simulation": "BLOCKED_EXTERNAL",
+            "simulation": "SEE_SIMULATION_CAPABILITIES",
         },
     }
 
@@ -1442,3 +1563,22 @@ def compute_pools(p: Auth, db: DB):
 
 
 register_curation(app)
+register_providers(app)
+register_simulations(app)
+
+
+register_compute(app)
+register_evaluation(app)
+register_governance(app)
+register_scim(app)
+register_operations(app)
+
+# Starlette matches in registration order: the existing /versions/{id} route
+# must not consume the literal comparison endpoint introduced in P10.
+for comparison_path in ("/v1/versions/compare", "/v1/evaluations/compare"):
+    matching = next(
+        (route for route in app.router.routes if getattr(route, "path", "") == comparison_path), None
+    )
+    if matching:
+        app.router.routes.remove(matching)
+        app.router.routes.insert(0, matching)

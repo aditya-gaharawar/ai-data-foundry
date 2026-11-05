@@ -1,0 +1,19 @@
+uv run python scripts/operational_checks.py load
+{
+  "kind": "load",
+  "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+  "report": {
+    "scope": "local",
+    "recorded_at": "2026-11-05T20:04:05.515093+00:00",
+    "status": "PASS",
+    "requests": 60,
+    "concurrency": 4,
+    "errors": 0,
+    "p50_ms": 63.79,
+    "p95_ms": 103.83,
+    "elapsed_seconds": 1.0,
+    "requests_per_second": 59.75,
+    "acceptance": "0 non-200 responses; local p95 <5000ms",
+    "limits": "Single local host, synthetic fixtures, bounded read traffic; not a production SLA."
+  }
+}

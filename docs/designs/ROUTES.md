@@ -5,6 +5,19 @@ Tenant context is verified server-side. Unimplemented destinations are hidden.
 Common states: role="status" skeletons, real empty results, Problem Details
 errors with request IDs, and scope-denied views. No fixture KPIs are substituted.
 
+P07–P12 add these verified local routes. Their limits and full browser evidence
+are in `verification/evidence/p07-p12/VERIFICATION.md`.
+
+| Route | Query source | Mutations | Required scope / verification |
+| --- | --- | --- | --- |
+| `/teacher` | providers/catalog, providers, datasets | rights-aware connection/revoke, saved recipe/estimate, durable generation | providers:manage to connect; datasets:write + runs:execute to generate |
+| `/simulations` | capabilities, image datasets | parameterized Blender recipe/estimate/run | datasets:write + runs:execute; incompatible Isaac blocked |
+| `/datasets/[id]` simulation inspector | authenticated RGB, mask and GLB artifacts, metadata | lazy verified 3D viewer; exports | datasets:read; holdout and erasure checked server-side |
+| `/compute` | pools, agents, jobs, versions | pool/enrollment/revoke, placement, fixed verification/cancel | compute:manage for identities; runs:execute for jobs |
+| `/evaluations` | lexical index, version distributions/diffs, benchmarks, outcomes, feedback | benchmark registration, outcome import, bounded proposal/decision | evaluations:write; holdouts:read for benchmarks/solutions |
+| `/settings/governance` | immutable policy, dataset protection, approvals, erasures, tokens | policy revisions, holdout/legal hold, independent approval, sealed erasure, SCIM token/revoke | governance:manage; members:manage for provisioning tokens |
+| `/operations` | source fingerprint, current gates, ledger, incidents, operator proofs | reconciliation, incident scan/ack, signed readiness | operations:manage; proof import additionally needs operator HMAC |
+
 | Route | Query source | Mutations | Required scope / verification |
 | --- | --- | --- | --- |
 | `/overview` | `/v1/overview`, projects and session | Open create dialog, project/theme/menu preferences | datasets:read; browser/a11y/empty-tenant proof |

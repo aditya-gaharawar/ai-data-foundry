@@ -8,7 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as ModelError
 
 from .errors import Problem
+from .providers import ImageGenerateConfig, TeacherConfig
 from .security import canonical, digest
+from .simulations import SimulationConfig
 
 RECIPE_SCHEMA = json.loads(Path("contracts/recipe.schema.json").read_text())
 
@@ -67,7 +69,10 @@ def compile_recipe(definition: dict) -> list[dict]:
     try:
         Draft202012Validator(RECIPE_SCHEMA).validate(definition)
     except ValidationError as error:
-        raise Problem(422, "INVALID_RECIPE", error.message) from None
+        location = ".".join(map(str, error.absolute_path)) or "recipe"
+        raise Problem(
+            422, "INVALID_RECIPE", f"Recipe schema validation failed at {location} ({error.validator})."
+        ) from None
     nodes = definition["nodes"]
     indexed = {node["id"]: node for node in nodes}
     if len(indexed) != len(nodes):
@@ -97,18 +102,15 @@ def compile_recipe(definition: dict) -> list[dict]:
     if any(len(incoming[key]) > 1 or len(outgoing[key]) > 1 for key in indexed):
         raise Problem(422, "UNSUPPORTED_GRAPH", "This local engine supports a single connected pipeline.")
     kinds = [node["type"] for node in order]
-    if kinds not in (
-        ["generate", "validate", "publish"],
-        ["ingest", "validate", "publish"],
-        ["generate", "validate", "publish", "export"],
-        ["ingest", "validate", "publish", "export"],
-        ["curate", "validate", "publish"],
-        ["curate", "validate", "publish", "export"],
+    if (
+        not kinds
+        or kinds[0] not in {"generate", "ingest", "curate", "teacher", "image_generate", "simulate"}
+        or kinds[1:] not in (["validate", "publish"], ["validate", "publish", "export"])
     ):
         raise Problem(
             422,
             "UNSUPPORTED_PIPELINE",
-            "Use generate/ingest/curate → validate → publish, optionally followed by export.",
+            "Use a supported source → validate → publish, optionally followed by export.",
         )
     if len(seen) != len(nodes) - 1:
         raise Problem(422, "INVALID_RECIPE", "All nodes must form one connected pipeline.")
@@ -116,6 +118,9 @@ def compile_recipe(definition: dict) -> list[dict]:
         "generate": GenerateConfig,
         "ingest": IngestConfig,
         "curate": CurateConfig,
+        "teacher": TeacherConfig,
+        "image_generate": ImageGenerateConfig,
+        "simulate": SimulationConfig,
         "validate": ValidateConfig,
         "publish": Strict,
         "export": ExportConfig,
@@ -126,7 +131,10 @@ def compile_recipe(definition: dict) -> list[dict]:
         try:
             schemas[node["type"]].model_validate(node["config"])
         except ModelError as error:
-            raise Problem(422, "INVALID_NODE_CONFIG", str(error)) from None
+            message = "; ".join(
+                ".".join(map(str, item["loc"])) + ": " + item["msg"] for item in error.errors()
+            )
+            raise Problem(422, "INVALID_NODE_CONFIG", message) from None
     return order
 
 

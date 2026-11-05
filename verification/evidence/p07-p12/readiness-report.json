@@ -1,0 +1,87 @@
+{
+  "status": "LOCAL_CHECKS_PASSED",
+  "report": {
+    "status": "LOCAL_CHECKS_PASSED",
+    "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+    "recorded_at": "2026-11-05T20:05:52.788974+00:00",
+    "checks": [
+      {
+        "gate": "durable_local_worker",
+        "state": "PASS"
+      },
+      {
+        "gate": "ledger_reconciliation",
+        "state": "PASS"
+      },
+      {
+        "gate": "local_restore",
+        "state": "PASS",
+        "proof_id": "prf_836290794e9d469591dd64fe4782d898"
+      },
+      {
+        "gate": "local_load",
+        "state": "PASS",
+        "proof_id": "prf_3e84d2cd371641c793fac0f5becdba4c"
+      },
+      {
+        "gate": "local_security",
+        "state": "PASS",
+        "proof_id": "prf_04ed3cd5af054c5ba6c56b76a61199ca"
+      },
+      {
+        "gate": "local_regression",
+        "state": "PASS",
+        "proof_id": "prf_14757c8ebc14434da36011b24d41a9a3"
+      },
+      {
+        "gate": "local_rollback",
+        "state": "PASS",
+        "proof_id": "prf_3302cff4b6b84be89441257ea0fc05dc"
+      }
+    ],
+    "release_gates": [
+      {
+        "gate": "staging_release_and_rollback",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "No approved staging target, release identity or demonstration is configured."
+      },
+      {
+        "gate": "production_identity",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "SSO/IdP and hardened production session deployment are unconfigured; auth is local only."
+      },
+      {
+        "gate": "independent_security_review",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "No independent penetration test or audit has been commissioned."
+      },
+      {
+        "gate": "optional_native_dependency_advisory",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "The optional local model wrapper includes an unfixed diskcache pickle advisory. Disk caching is refused and unreachable in this app; remove/replace the dependency before production."
+      },
+      {
+        "gate": "external_compute_and_providers",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "Paid model providers, Kubernetes/Kueue, Slurm and certified RTX Isaac runtimes are unconfigured."
+      },
+      {
+        "gate": "remote_ci_and_review",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "No Git remote or hosted CI/reviewer is configured."
+      },
+      {
+        "gate": "production_sla",
+        "state": "BLOCKED_EXTERNAL",
+        "reason": "Local bounded measurements cannot establish a production availability SLA."
+      }
+    ],
+    "production_release": "BLOCKED_EXTERNAL",
+    "scope": "local synthetic-data validation; no compliance or scientific-performance certification",
+    "operator_signature": "cdd38e3e2c8f6e33d73ceef4064accaa8311cb99c141528b78c262428d822e13"
+  },
+  "created_by": "usr_60a6981628aa4396910f79638f36bb42",
+  "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+  "id": "rdy_c5d5dfce3637418d89b06ff2eda1eeff",
+  "created_at": "2026-11-05T20:05:52.790321+00:00"
+}

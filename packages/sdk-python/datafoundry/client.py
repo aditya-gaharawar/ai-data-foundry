@@ -8,6 +8,7 @@ from pathlib import Path
 
 import httpx
 
+from .domains import Compute, Evaluations, Governance, Operations, Providers, Provisioning, Simulations
 from .models import AnnotationTaskOut, CurationOut, DatasetOut, QualityProfileOut, RecipeOut, RunOut
 
 
@@ -44,9 +45,19 @@ class DataFoundry:
         self.quality_profiles = QualityProfiles(self)
         self.curations = Curations(self)
         self.annotations = Annotations(self)
+        self.providers = Providers(self)
+        self.compute = Compute(self)
+        self.simulations = Simulations(self)
+        self.evaluations = Evaluations(self)
+        self.governance = Governance(self)
+        self.operations = Operations(self)
+        self.scim = Provisioning(self)
 
-    def request(self, method, path, body=None, *, idempotency_key=None):
-        headers = {"Idempotency-Key": idempotency_key or uuid.uuid4().hex} if method == "POST" else {}
+    def request(self, method, path, body=None, *, idempotency_key=None, headers=None):
+        headers = {
+            **(headers or {}),
+            **({"Idempotency-Key": idempotency_key or uuid.uuid4().hex} if method == "POST" else {}),
+        }
         # Only safe reads are retried. Mutations retain caller-controlled idempotency.
         for attempt in range(3 if method == "GET" else 1):
             response = self.http.request(method, path, json=body, headers=headers)

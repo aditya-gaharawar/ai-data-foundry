@@ -29,10 +29,12 @@ export class DataFoundry {
     path: string,
     body?: unknown,
     idempotencyKey?: string,
+    extraHeaders: Record<string, string> = {},
   ): Promise<T> {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.options.apiKey}`,
       "Content-Type": "application/json",
+      ...extraHeaders,
     };
     if (this.options.organizationId)
       headers["X-Organization-Id"] = this.options.organizationId;
@@ -245,6 +247,340 @@ export class DataFoundry {
         "POST",
         `/v1/annotation-tasks/${id}/reopen`,
         body,
+        key,
+      ),
+  };
+  providers = {
+    catalog: () =>
+      this.request<{ items: Record<string, unknown>[] }>(
+        "GET",
+        "/v1/providers/catalog",
+      ),
+    list: () =>
+      this.request<Page<components["schemas"]["ProviderOut"]>>(
+        "GET",
+        "/v1/providers",
+      ),
+    get: (id: string) =>
+      this.request<components["schemas"]["ProviderOut"]>(
+        "GET",
+        `/v1/providers/${id}`,
+      ),
+    create: (body: components["schemas"]["ProviderCreate"], key?: string) =>
+      this.request<components["schemas"]["ProviderOut"]>(
+        "POST",
+        "/v1/providers",
+        body,
+        key,
+      ),
+    revoke: (id: string, key?: string) =>
+      this.request("POST", `/v1/providers/${id}/revoke`, {}, key),
+  };
+  compute = {
+    pools: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/compute/registered-pools",
+      ),
+    registerPool: (body: components["schemas"]["PoolCreate"], key?: string) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/compute/registered-pools",
+        body,
+        key,
+      ),
+    agents: () =>
+      this.request<Page<Record<string, unknown>>>("GET", "/v1/compute/agents"),
+    enroll: (body: components["schemas"]["AgentCreate"], key?: string) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/compute/agents",
+        body,
+        key,
+      ),
+    revoke: (id: string, key?: string) =>
+      this.request("POST", `/v1/compute/agents/${id}/revoke`, {}, key),
+    placement: (body: components["schemas"]["Placement"]) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/compute/placement",
+        body,
+      ),
+    submit: (body: components["schemas"]["ComputeJobCreate"], key?: string) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/compute/jobs",
+        body,
+        key,
+      ),
+    jobs: () =>
+      this.request<Page<Record<string, unknown>>>("GET", "/v1/compute/jobs"),
+    job: (id: string) =>
+      this.request<Record<string, unknown>>("GET", `/v1/compute/jobs/${id}`),
+    cancel: (id: string, key?: string) =>
+      this.request("POST", `/v1/compute/jobs/${id}/cancel`, {}, key),
+  };
+  simulations = {
+    capabilities: () =>
+      this.request<{ items: Record<string, unknown>[] }>(
+        "GET",
+        "/v1/simulations/capabilities",
+      ),
+  };
+  scim = {
+    configuration: () =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        "/v1/scim/v2/ServiceProviderConfig",
+      ),
+    users: (startIndex = 1, count = 25) =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/scim/v2/Users?${new URLSearchParams({ startIndex: String(startIndex), count: String(count) })}`,
+      ),
+    user: (id: string) =>
+      this.request<Record<string, unknown>>("GET", `/v1/scim/v2/Users/${id}`),
+    create: (body: components["schemas"]["ScimUser"]) =>
+      this.request<Record<string, unknown>>("POST", "/v1/scim/v2/Users", body),
+    replace: (
+      id: string,
+      body: components["schemas"]["ScimUser"],
+      etag: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "PUT",
+        `/v1/scim/v2/Users/${id}`,
+        body,
+        undefined,
+        { "If-Match": etag },
+      ),
+    patch: (
+      id: string,
+      body: components["schemas"]["ScimPatch"],
+      etag: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "PATCH",
+        `/v1/scim/v2/Users/${id}`,
+        body,
+        undefined,
+        { "If-Match": etag },
+      ),
+    delete: (id: string, etag: string) =>
+      this.request<void>(
+        "DELETE",
+        `/v1/scim/v2/Users/${id}`,
+        undefined,
+        undefined,
+        { "If-Match": etag },
+      ),
+  };
+  evaluations = {
+    distribution: (versionId: string) =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/versions/${versionId}/distribution`,
+      ),
+    compareVersions: (left: string, right: string) =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/versions/compare?${new URLSearchParams({ left_version_id: left, right_version_id: right })}`,
+      ),
+    search: (query: string, offset = 0) =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/search/samples?${new URLSearchParams({ q: query, offset: String(offset) })}`,
+      ),
+    benchmarks: () =>
+      this.request<Page<Record<string, unknown>>>("GET", "/v1/benchmarks"),
+    createBenchmark: (
+      body: components["schemas"]["BenchmarkCreate"],
+      key?: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/benchmarks",
+        body,
+        key,
+      ),
+    importResults: (
+      body: components["schemas"]["EvaluationCreate"],
+      key?: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/evaluations",
+        body,
+        key,
+      ),
+    list: () =>
+      this.request<Page<Record<string, unknown>>>("GET", "/v1/evaluations"),
+    get: (id: string) =>
+      this.request<Record<string, unknown>>("GET", `/v1/evaluations/${id}`),
+    compare: (baseline: string, candidate: string) =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/evaluations/compare?${new URLSearchParams({ baseline_id: baseline, candidate_id: candidate })}`,
+      ),
+    feedback: () =>
+      this.request<Page<Record<string, unknown>>>("GET", "/v1/feedback"),
+    propose: (body: components["schemas"]["FeedbackCreate"], key?: string) =>
+      this.request<Record<string, unknown>>("POST", "/v1/feedback", body, key),
+    decide: (
+      id: string,
+      body: components["schemas"]["FeedbackDecision"],
+      key?: string,
+    ) => this.request("POST", `/v1/feedback/${id}/decision`, body, key),
+  };
+  governance = {
+    policy: () =>
+      this.request<Record<string, unknown>>("GET", "/v1/governance/policy"),
+    policies: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/governance/policies",
+      ),
+    setPolicy: (
+      body: components["schemas"]["GovernancePolicyCreate"],
+      key?: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/governance/policies",
+        body,
+        key,
+      ),
+    protect: (
+      id: string,
+      body: components["schemas"]["DatasetGovernance"],
+      key?: string,
+    ) => this.request("POST", `/v1/governance/datasets/${id}`, body, key),
+    approvals: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/governance/approvals",
+      ),
+    decideApproval: (
+      id: string,
+      body: components["schemas"]["ApprovalDecision"],
+      key?: string,
+    ) =>
+      this.request(
+        "POST",
+        `/v1/governance/approvals/${id}/decision`,
+        body,
+        key,
+      ),
+    retention: () =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        "/v1/governance/retention-plan",
+      ),
+    erasures: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/governance/erasures",
+      ),
+    erasure: (id: string) =>
+      this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/governance/erasures/${id}`,
+      ),
+    requestErasure: (
+      body: components["schemas"]["ErasureCreate"],
+      key?: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/governance/erasures",
+        body,
+        key,
+      ),
+    decideErasure: (
+      id: string,
+      body: components["schemas"]["ApprovalDecision"],
+      key?: string,
+    ) =>
+      this.request("POST", `/v1/governance/erasures/${id}/decision`, body, key),
+    previewErasure: (id: string, key?: string) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        `/v1/governance/erasures/${id}/preview`,
+        {},
+        key,
+      ),
+    executeErasure: (
+      id: string,
+      body: components["schemas"]["ErasureExecute"],
+      key?: string,
+    ) =>
+      this.request("POST", `/v1/governance/erasures/${id}/execute`, body, key),
+    retryErasure: (id: string, key?: string) =>
+      this.request("POST", `/v1/governance/erasures/${id}/retry`, {}, key),
+    provisioningTokens: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/governance/scim-tokens",
+      ),
+    createProvisioningToken: (
+      body: components["schemas"]["ScimTokenCreate"],
+      key?: string,
+    ) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/governance/scim-tokens",
+        body,
+        key,
+      ),
+    revokeProvisioningToken: (id: string, key?: string) =>
+      this.request("POST", `/v1/governance/scim-tokens/${id}/revoke`, {}, key),
+  };
+  operations = {
+    status: () =>
+      this.request<Record<string, unknown>>("GET", "/v1/operations/status"),
+    reconcile: (key?: string) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/operations/reconciliations",
+        {},
+        key,
+      ),
+    reconciliations: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/operations/reconciliations",
+      ),
+    scan: (key?: string) =>
+      this.request("POST", "/v1/operations/incidents/scan", {}, key),
+    incidents: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/operations/incidents",
+      ),
+    acknowledge: (id: string, key?: string) =>
+      this.request(
+        "POST",
+        `/v1/operations/incidents/${id}/acknowledge`,
+        {},
+        key,
+      ),
+    proofs: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/operations/proofs",
+      ),
+    importProof: (body: components["schemas"]["ProofImport"], key?: string) =>
+      this.request("POST", "/v1/operations/proofs", body, key),
+    readiness: () =>
+      this.request<Page<Record<string, unknown>>>(
+        "GET",
+        "/v1/operations/readiness",
+      ),
+    signReadiness: (key?: string) =>
+      this.request<Record<string, unknown>>(
+        "POST",
+        "/v1/operations/readiness",
+        {},
         key,
       ),
   };

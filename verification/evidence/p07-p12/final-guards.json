@@ -1,0 +1,9 @@
+{
+  "invalid_config_status": 422,
+  "raw_config_not_echoed": true,
+  "cross_tenant_provider": 404,
+  "cross_tenant_version": 404,
+  "cross_tenant_samples": 404,
+  "temporary_recovery_databases": 0,
+  "temporary_recovery_buckets": 0
+}

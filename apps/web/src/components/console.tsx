@@ -66,6 +66,11 @@ import {
   WebhooksPage,
 } from "./settings";
 import { Button, ErrorNotice, Loading, Modal, useAction } from "./ui";
+import { TeacherStudio, SimulationStudio } from "./studios";
+import { ComputePage } from "./compute-page";
+import { EvaluationPage } from "./evaluation-page";
+import { GovernancePage } from "./governance-page";
+import { OperationsPage } from "./operations-page";
 
 const navigation = [
   {
@@ -78,6 +83,15 @@ const navigation = [
   { label: "Curation", href: "/curation", icon: ListChecks },
   { label: "Workflows", href: "/workflows", icon: GitBranch },
   { label: "Runs", href: "/runs", icon: Activity },
+  {
+    label: "Teacher Studio",
+    href: "/teacher",
+    icon: FileText,
+    group: "BUILD & MEASURE",
+  },
+  { label: "Simulation Studio", href: "/simulations", icon: Box },
+  { label: "Evaluations", href: "/evaluations", icon: ListChecks },
+  { label: "Compute", href: "/compute", icon: Layers3 },
   {
     label: "API keys",
     href: "/settings/api-keys",
@@ -100,6 +114,18 @@ const navigation = [
     scope: "members:manage",
   },
   { label: "Usage & budgets", href: "/settings/usage", icon: Gauge },
+  {
+    label: "Governance",
+    href: "/settings/governance",
+    icon: ShieldCheck,
+    scope: "governance:manage",
+  },
+  {
+    label: "Operations",
+    href: "/operations",
+    icon: Activity,
+    scope: "operations:manage",
+  },
   {
     label: "Audit log",
     href: "/settings/audit",
@@ -450,6 +476,13 @@ function Workspace({
   else if (path[0] === "runs")
     page = path[1] ? <RunDetail id={path[1]} /> : <RunsPage />;
   else if (path[0] === "developers") page = <ApiDocsPage />;
+  else if (path[0] === "teacher") page = <TeacherStudio />;
+  else if (path[0] === "simulations") page = <SimulationStudio />;
+  else if (path[0] === "compute") page = <ComputePage />;
+  else if (path[0] === "evaluations") page = <EvaluationPage />;
+  else if (path[0] === "operations") page = <OperationsPage />;
+  else if (path[0] === "settings" && path[1] === "governance")
+    page = <GovernancePage />;
   else if (path[0] === "settings" && path[1] === "api-keys")
     page = <KeysPage />;
   else if (path[0] === "settings" && path[1] === "webhooks")

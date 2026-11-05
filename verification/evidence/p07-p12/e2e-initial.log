@@ -1,0 +1,117 @@
+pnpm test:e2e
+$ playwright test
+
+Running 16 tests using 1 worker
+
+(node:98417) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/core.spec.ts:30:5 › create → durable run → quality → immutable version → real JSONL download (14.2s)
+  ✓   2 tests/e2e/core.spec.ts:108:5 › administrator provisions a separate viewer account and permissions apply (10.1s)
+  ✓   3 tests/e2e/core.spec.ts:140:5 › priority routes are responsive, accessible, and support both themes (46.1s)
+  ✓   4 tests/e2e/core.spec.ts:195:5 › keyboard palette, mobile navigation, errors and logout (8.3s)
+  ✓   5 tests/e2e/core.spec.ts:252:5 › browser multipart upload reaches a verified version and escapes sample HTML (14.7s)
+  ✓   6 tests/e2e/curation.spec.ts:86:5 › image upload → box review → data card → durable publication → matching COCO and YOLO (1.1m)
+  ✓   7 tests/e2e/curation.spec.ts:285:5 › two independent labelers correct, disagree, and receive independent adjudication (30.7s)
+  ✘   8 tests/e2e/expansion.spec.ts:134:5 › Teacher Studio records rights and launches genuine local inference (23.9s)
+(node:103852) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 tests/e2e/expansion.spec.ts:203:5 › Simulation Studio renders frames and shows a verified protected 3D scene (17.7s)
+  ✓  10 tests/e2e/expansion.spec.ts:246:5 › Compute console enrolls an actual outbound verifier and records its result (28.1s)
+  ✓  11 tests/e2e/expansion.spec.ts:307:5 › Evaluations console compares versions, imports fixture counts, and saves approved feedback (21.6s)
+  ✘  12 tests/e2e/expansion.spec.ts:440:5 › Governance console records policy, legal hold, independent request, and SCIM revocation (9.6s)
+(node:105824) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 tests/e2e/expansion.spec.ts:509:5 › Governance erasure previews a sealed plan and completes after independent approval (26.0s)
+  ✓  14 tests/e2e/expansion.spec.ts:609:5 › Operations console persists reconciliation, incidents, and signed readiness (12.6s)
+  ✓  15 tests/e2e/expansion.spec.ts:640:5 › All expansion pages are accessible and fit desktop, tablet, mobile, and 200% zoom (1.4m)
+  ✓  16 tests/e2e/keyboard.spec.ts:19:5 › keyboard-only lifecycle from sign-in through JSONL export (22.2s)
+
+
+  1) tests/e2e/expansion.spec.ts:134:5 › Teacher Studio records rights and launches genuine local inference
+
+    TimeoutError: locator.selectOption: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Provider connection', { exact: true })
+        - locator resolved to <select required="" aria-label="Provider connection">…</select>
+      - attempting select option action
+        2 × waiting for element to be visible and enabled
+          - did not find some options
+        - retrying select option action
+        - waiting 20ms
+        2 × waiting for element to be visible and enabled
+          - did not find some options
+        - retrying select option action
+          - waiting 100ms
+        30 × waiting for element to be visible and enabled
+           - did not find some options
+         - retrying select option action
+           - waiting 500ms
+
+
+      169 |   await page
+      170 |     .getByLabel("Provider connection", { exact: true })
+    > 171 |     .selectOption(id);
+          |      ^
+      172 |   await page
+      173 |     .getByLabel("Generation instructions", { exact: true })
+      174 |     .fill("Write one short instruction and answer about numbers.");
+        at /workspace/ai-data-foundry/tests/e2e/expansion.spec.ts:171:6
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .local/test-results/expansion-Teacher-Studio-r-fd659-hes-genuine-local-inference/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .local/test-results/expansion-Teacher-Studio-r-fd659-hes-genuine-local-inference/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    .local/test-results/expansion-Teacher-Studio-r-fd659-hes-genuine-local-inference/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace .local/test-results/expansion-Teacher-Studio-r-fd659-hes-genuine-local-inference/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/e2e/expansion.spec.ts:440:5 › Governance console records policy, legal hold, independent request, and SCIM revocation
+
+    Error: expect(locator).toBeDisabled() failed
+
+    Locator: locator('.record-row').filter({ hasText: 'Browser hold and independent release request proof' }).getByRole('button', { name: 'Approve release', exact: true })
+    Expected: disabled
+    Error: strict mode violation: locator('.record-row').filter({ hasText: 'Browser hold and independent release request proof' }).getByRole('button', { name: 'Approve release', exact: true }) resolved to 2 elements:
+        1) <button disabled class="button secondary ">Approve release</button> aka getByRole('button', { name: 'Approve release' }).first()
+        2) <button disabled class="button secondary ">Approve release</button> aka getByRole('button', { name: 'Approve release' }).nth(1)
+
+    Call log:
+      - Expect "toBeDisabled" locator('.record-row').filter({ hasText: 'Browser hold and independent release request proof' }).getByRole('button', { name: 'Approve release', exact: true }) with timeout 15000ms
+      - waiting for locator('.record-row').filter({ hasText: 'Browser hold and independent release request proof' }).getByRole('button', { name: 'Approve release', exact: true })
+
+
+      485 |     await expect(
+      486 |       own.getByRole("button", { name: "Approve release", exact: true }),
+    > 487 |     ).toBeDisabled();
+          |       ^
+      488 |     const tokenName = `Browser SCIM ${Date.now()}`;
+      489 |     await page
+      490 |       .getByLabel("Provisioning token name", { exact: true })
+        at /workspace/ai-data-foundry/tests/e2e/expansion.spec.ts:487:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .local/test-results/expansion-Governance-conso-c57ae-request-and-SCIM-revocation/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .local/test-results/expansion-Governance-conso-c57ae-request-and-SCIM-revocation/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    .local/test-results/expansion-Governance-conso-c57ae-request-and-SCIM-revocation/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace .local/test-results/expansion-Governance-conso-c57ae-request-and-SCIM-revocation/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/e2e/expansion.spec.ts:134:5 › Teacher Studio records rights and launches genuine local inference
+    tests/e2e/expansion.spec.ts:440:5 › Governance console records policy, legal hold, independent request, and SCIM revocation
+  14 passed (7.3m)
+[ELIFECYCLE] Command failed with exit code 1.
+make: *** [Makefile:30: test-e2e] Error 1

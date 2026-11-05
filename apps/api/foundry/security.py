@@ -34,6 +34,12 @@ SCOPES = [
     "annotations:manage",
     "annotations:review",
     "annotations:adjudicate",
+    "providers:manage",
+    "compute:manage",
+    "evaluations:write",
+    "governance:manage",
+    "operations:manage",
+    "holdouts:read",
 ]
 ROLES = {
     "Owner": SCOPES,
@@ -44,6 +50,7 @@ ROLES = {
         "runs:execute",
         "annotations:manage",
         "annotations:review",
+        "evaluations:write",
     ],
     "Labeler": ["datasets:read", "annotations:review"],
     "Viewer": ["datasets:read"],
@@ -186,4 +193,7 @@ def principal(request: Request, db: DBSession = Depends(session)) -> Principal:
     scopes = ROLES[membership.role]
     if key:
         scopes = [s for s in scopes if s in key.scopes]
-    return Principal(user_id, membership.organization_id, membership.role, scopes, key.id if key else None)
+    result = Principal(user_id, membership.organization_id, membership.role, scopes, key.id if key else None)
+    db.info["principal"] = result
+    db.info["mutation"] = request.method not in ("GET", "HEAD", "OPTIONS")
+    return result

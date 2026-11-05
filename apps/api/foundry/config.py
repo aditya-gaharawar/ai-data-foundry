@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     s3_access_key: str
     s3_secret_key: str
     s3_bucket: str = "foundry"
+    s3_restore_map_file: str | None = None
     temporal_address: str = "localhost:7233"
     allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     dev_password: str
@@ -21,6 +22,11 @@ class Settings(BaseSettings):
     webhook_local_hosts: str = "localhost,127.0.0.1,webhook-receiver"
     local_webhook_url: str = "http://localhost:9100/events"
     max_upload_bytes: int = 20 * 1024 * 1024
+    local_model_manifest: str = ".local/models/manifest.json"
+    blender_executable: str = "/usr/bin/blender"
+    blender_version: str = "4.3.2"
+    provider_http_allowlist: str = ""
+    allow_external_provider_calls: bool = False
 
     @property
     def origins(self) -> list[str]:

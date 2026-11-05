@@ -69,7 +69,7 @@ class RunCreate(Strict):
 
 class KeyCreate(Strict):
     name: str = Field(min_length=1, max_length=160)
-    scopes: list[str] = Field(min_length=1, max_length=12)
+    scopes: list[str] = Field(min_length=1, max_length=32)
 
 
 class MemberCreate(Strict):

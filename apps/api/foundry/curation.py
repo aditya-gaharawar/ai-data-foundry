@@ -311,6 +311,22 @@ def evaluate_curation(db, curation) -> tuple[dict, list[dict], list[dict]]:
     acceptance = len(selected) / max(eligible, 1)
     card_ok = all(str(curation.data_card.get(key, "")).strip() for key in DataCard.model_fields)
     reasons = []
+    from .policies import check_publication_policy, pii_transform
+
+    try:
+        governance = check_publication_policy(db, target, "curate")
+        if (
+            curation.dedupe_report.get("governance_policy_sha256", governance["sha256"])
+            != governance["sha256"]
+        ):
+            reasons.append("Governance changed after intake. Create a curation under the current policy.")
+        transformed, _ = pii_transform(
+            [sample["payload"] for sample in selected], governance["definition"]["pii_mode"]
+        )
+        if transformed != [sample["payload"] for sample in selected]:
+            reasons.append("Redaction would change reviewed data. Review a new curation after redaction.")
+    except Problem as error:
+        reasons.append(error.message)
     if pending or len(tasks) != len(samples):
         reasons.append("All nonduplicate tasks need completed independent reviews or adjudication.")
     if len(selected) < config.minimum_samples:

@@ -1,0 +1,82 @@
+{
+  "source_sha256": "86e88c83df591f33a6cae4dbf1ace3445d215a9228161453b6bfbc524e1aeb18",
+  "test_counts": {
+    "unit_contract": 25,
+    "integration": 23,
+    "security": 13,
+    "browser": 16,
+    "unique_total": 77
+  },
+  "commands": [
+    {
+      "command": "make bootstrap",
+      "exit_code": 0
+    },
+    {
+      "command": "make lint",
+      "exit_code": 0
+    },
+    {
+      "command": "make test",
+      "exit_code": 0
+    },
+    {
+      "command": "make test-integration",
+      "exit_code": 0
+    },
+    {
+      "command": "make test-security",
+      "exit_code": 0
+    },
+    {
+      "command": "make test-e2e",
+      "exit_code": 0
+    },
+    {
+      "command": "make smoke",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run python scripts/verify_fresh_database.py",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run alembic check",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run python scripts/contracts.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run pytest -q tests/test_expansion.py -k \"genuine_licensed or blender_frames\"",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm exec playwright test tests/e2e/expansion.spec.ts --grep \"Teacher Studio records|Simulation Studio renders\" --max-failures=1 --reporter=list",
+      "exit_code": 0
+    },
+    {
+      "command": "make scan-security",
+      "exit_code": 0
+    },
+    {
+      "command": "make test-recovery",
+      "exit_code": 0
+    },
+    {
+      "command": "make test-load",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run python scripts/collect_expansion_evidence.py",
+      "exit_code": 0
+    }
+  ],
+  "note": "Full suites plus targeted rechecks after corrections; repeated smoke/native/optimized scenarios are not additional unique tests.",
+  "finalization": "Final TOML EOF formatting was normalized; before/after parsed configuration was asserted identical. Application, SDK, test and build behavior is unchanged; operational checks were rerun against the final fingerprint."
+}
