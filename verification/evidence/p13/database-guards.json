@@ -1,0 +1,10 @@
+{
+  "recorded_at": "2026-11-06T05:13:13.077896+00:00",
+  "source_sha256": "f05db523e5f2021bf8885f24d27ae76134873ee6727e9f4f5333426034069a30",
+  "checks": {
+    "notification_content_immutable": "PASS",
+    "run_attribution_immutable": "PASS",
+    "occurrence_cross_tenant_foreign_key": "PASS"
+  },
+  "transactions": "All attempted mutations rejected; every test transaction rolled back."
+}

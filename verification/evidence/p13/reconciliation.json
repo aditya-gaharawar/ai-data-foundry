@@ -1,0 +1,18 @@
+{
+  "report": {
+    "status": "PASS",
+    "run_count": 268,
+    "ledger_internal_micro": 128632000,
+    "ledger_external_micro": 0,
+    "organization_spent_micro": 128632000,
+    "organization_reserved_micro": 0,
+    "discrepancies": [],
+    "billing_status": "UNBILLED_LOCAL",
+    "changes_applied": false,
+    "recorded_at": "2026-11-06T05:13:13.521377+00:00"
+  },
+  "created_by": "usr_60a6981628aa4396910f79638f36bb42",
+  "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+  "id": "rec_e1de3fc2e1bb4942827d3790cea5b330",
+  "created_at": "2026-11-06T05:13:13.524425+00:00"
+}

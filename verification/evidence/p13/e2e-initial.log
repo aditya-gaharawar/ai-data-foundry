@@ -1,0 +1,78 @@
+
+Running 2 tests using 1 worker
+
+(node:538777) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/automation.spec.ts:140:5 › schedule preview and approval publish a real version and private inbox notice (32.7s)
+  ✘  2 tests/e2e/automation.spec.ts:214:5 › schedule pause resume cancel and responsive dark inbox controls (7.8s)
+
+
+  1) tests/e2e/automation.spec.ts:214:5 › schedule pause resume cancel and responsive dark inbox controls
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 35
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "description": "Ensure the order of headings is semantically correct",
+    +     "help": "Heading levels should only increase by one",
+    +     "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/heading-order?application=playwright",
+    +     "id": "heading-order",
+    +     "impact": "moderate",
+    +     "nodes": Array [
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": null,
+    +             "id": "heading-order",
+    +             "impact": "moderate",
+    +             "message": "Heading order invalid",
+    +             "relatedNodes": Array [],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Heading order invalid",
+    +         "html": "<h3>You're all caught up</h3>",
+    +         "impact": "moderate",
+    +         "none": Array [],
+    +         "target": Array [
+    +           "h3",
+    +         ],
+    +       },
+    +     ],
+    +     "tags": Array [
+    +       "cat.semantics",
+    +       "best-practice",
+    +     ],
+    +   },
+    + ]
+
+      268 |     ),
+      269 |   ).toBe(true);
+    > 270 |   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+          |                                                                 ^
+      271 | });
+      272 |
+        at /workspace/ai-data-foundry/tests/e2e/automation.spec.ts:270:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .local/test-results/automation-schedule-pause--e8673-ponsive-dark-inbox-controls/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .local/test-results/automation-schedule-pause--e8673-ponsive-dark-inbox-controls/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    .local/test-results/automation-schedule-pause--e8673-ponsive-dark-inbox-controls/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace .local/test-results/automation-schedule-pause--e8673-ponsive-dark-inbox-controls/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/e2e/automation.spec.ts:214:5 › schedule pause resume cancel and responsive dark inbox controls
+  1 passed (42.2s)

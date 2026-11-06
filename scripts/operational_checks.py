@@ -19,9 +19,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import httpx
+from foundry.automation import MAINTENANCE_LOCK
 from foundry.config import settings
 from foundry.db import Session, now
-from foundry.models import Base, ComputeJob, Dataset, Organization, Run, Version
+from foundry.models import Base, ComputeJob, Dataset, Organization, Run, Version, WorkflowSchedule
 from foundry.operations import sign_proof, source_fingerprint
 from foundry.security import canonical
 from foundry.storage import client
@@ -50,6 +51,13 @@ def auth_client():
         http.close()
 
 
+def evidence_directory():
+    private = Path(os.environ.get("FOUNDRY_EVIDENCE_DIR", ".local/evidence/p07-p12"))
+    private.mkdir(parents=True, exist_ok=True, mode=0o700)
+    private.chmod(0o700)
+    return private
+
+
 def save_proof(kind, report, *, publish=True):
     fingerprint = source_fingerprint()
     report = {"scope": "local", "recorded_at": now().isoformat(), **report}
@@ -59,8 +67,7 @@ def save_proof(kind, report, *, publish=True):
         "report": report,
         "operator_signature": sign_proof(kind, fingerprint, report),
     }
-    private = Path(".local/evidence/p07-p12")
-    private.mkdir(parents=True, exist_ok=True)
+    private = evidence_directory()
     target = private / f"{kind}.json"
     target.write_bytes(canonical(envelope))
     target.chmod(0o600)
@@ -124,14 +131,22 @@ def restore_drill():
     original_url = create_engine(cfg.database_url).url
     admin = create_engine(original_url.set(database="postgres"), isolation_level="AUTOCOMMIT")
     restored = None
+    maintenance_db = Session()
     created_db = created_bucket = False
     started = time.monotonic()
     try:
+        # Serialize against worker schedule admission before inspecting active work.
+        maintenance_db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:key,0))"), {"key": MAINTENANCE_LOCK}
+        )
         with Session() as db:
             active = db.scalar(
                 select(func.count())
                 .select_from(Run)
                 .where(Run.status.not_in(["SUCCEEDED", "FAILED", "CANCELLED"]))
+            )
+            active += db.scalar(
+                select(func.count()).select_from(WorkflowSchedule).where(WorkflowSchedule.state == "ACTIVE")
             )
             active += db.scalar(
                 select(func.count())
@@ -140,7 +155,7 @@ def restore_drill():
             )
             if active:
                 raise RuntimeError(
-                    "Finish/cancel active dataset and compute jobs before a consistent local drill."
+                    "Pause/cancel active schedules and finish/cancel dataset and compute jobs before a consistent local drill."
                 )
             counts = {
                 table.name: db.scalar(select(func.count()).select_from(table))
@@ -411,6 +426,7 @@ def restore_drill():
         }
         return report, rollback
     finally:
+        maintenance_db.close()
         if restored:
             restored.dispose()
         if created_db:

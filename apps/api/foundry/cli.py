@@ -12,11 +12,87 @@ runs = typer.Typer()
 recipes = typer.Typer()
 curations = typer.Typer(help="Curation sessions and quality profiles")
 annotations = typer.Typer(help="Human review queue and decisions")
+schedules = typer.Typer(help="Bounded workflow schedules")
+notifications = typer.Typer(help="Private in-app inbox")
 app.add_typer(datasets, name="datasets")
 app.add_typer(runs, name="runs")
 app.add_typer(recipes, name="recipes")
 app.add_typer(curations, name="curations")
 app.add_typer(annotations, name="annotations")
+app.add_typer(schedules, name="schedules")
+app.add_typer(notifications, name="notifications")
+
+
+@schedules.command("list")
+def list_schedules():
+    with client() as api:
+        typer.echo(json.dumps(api.schedules.list(), indent=2))
+
+
+@schedules.command("preview")
+def preview_schedule(body: Path):
+    with client() as api:
+        typer.echo(json.dumps(api.schedules.preview(json.loads(body.read_text())), indent=2))
+
+
+@schedules.command("create")
+def create_schedule(body: Path, idempotency_key: str | None = None):
+    """Body must include explicit approved_for_scheduled_execution=true."""
+    with client() as api:
+        typer.echo(
+            json.dumps(
+                api.schedules.create(json.loads(body.read_text()), idempotency_key=idempotency_key), indent=2
+            )
+        )
+
+
+@schedules.command("control")
+def control_schedule(schedule_id: str, action: str, revision: int, approve: bool = False):
+    with client() as api:
+        typer.echo(
+            json.dumps(
+                api.schedules.control(
+                    schedule_id,
+                    {
+                        "action": action,
+                        "expected_revision": revision,
+                        "approved_for_scheduled_execution": approve,
+                    },
+                ),
+                indent=2,
+            )
+        )
+
+
+@schedules.command("occurrences")
+def schedule_occurrences(schedule_id: str):
+    with client() as api:
+        typer.echo(json.dumps(api.schedules.occurrences(schedule_id), indent=2))
+
+
+@notifications.command("list")
+def list_notifications(unread: bool = False):
+    with client() as api:
+        typer.echo(json.dumps(api.notifications.list(unread=unread), indent=2))
+
+
+@notifications.command("summary")
+def notification_summary():
+    with client() as api:
+        typer.echo(json.dumps(api.notifications.summary(), indent=2))
+
+
+@notifications.command("read")
+def read_notification(notification_id: str):
+    with client() as api:
+        typer.echo(json.dumps(api.notifications.read(notification_id), indent=2))
+
+
+@notifications.command("read-all")
+def read_all_notifications(before: str):
+    """Use the as_of timestamp returned by notifications summary."""
+    with client() as api:
+        typer.echo(json.dumps(api.notifications.read_all(before), indent=2))
 
 
 def client():

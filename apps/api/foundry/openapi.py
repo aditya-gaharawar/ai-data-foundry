@@ -61,6 +61,10 @@ def enrich(schema):
         "acknowledge_incident",
         "import_proof",
         "create_readiness",
+        "create_schedule",
+        "control_schedule",
+        "read_notification",
+        "read_all_notifications",
     }
     for path, methods in schema["paths"].items():
         for method, operation in methods.items():

@@ -104,8 +104,7 @@ def terminate(db, run, state, code, message):
     release(db, run)
     run.status, run.error, run.finished_at = state, f"{code}: {message}", now()
     log(db, run, "run.failed" if state == "FAILED" else "run.cancelled", run.error)
-    if state == "FAILED":
-        emit(db, run, "run.failed", {"run_id": run.id, "code": code})
+    emit(db, run, "run.failed" if state == "FAILED" else "run.cancelled", {"run_id": run.id, "code": code})
 
 
 def owned(db, cls, identifier, org):
@@ -577,6 +576,9 @@ async def dispatch(client):
                         except WorkflowAlreadyStartedError:
                             pass
                     else:
+                        from .notifications import materialize_run_notice
+
+                        materialize_run_notice(db, row)
                         hooks = db.scalars(
                             select(Webhook).where(
                                 Webhook.organization_id == row.organization_id, Webhook.active.is_(True)
@@ -662,6 +664,17 @@ async def heartbeat():
         await asyncio.sleep(2)
 
 
+async def schedule_dispatch():
+    from .automation import dispatch_due
+
+    while True:
+        try:
+            await asyncio.to_thread(dispatch_due)
+        except Exception:
+            logger.exception("schedule_dispatch_failed")
+        await asyncio.sleep(1)
+
+
 async def main():
     client = await Client.connect(settings().temporal_address)
     async with Worker(
@@ -672,7 +685,7 @@ async def main():
         activity_executor=ThreadPoolExecutor(max_workers=2),
         max_concurrent_activities=2,
     ):
-        await asyncio.gather(dispatch(client), deliver(), heartbeat())
+        await asyncio.gather(dispatch(client), deliver(), heartbeat(), schedule_dispatch())
 
 
 if __name__ == "__main__":

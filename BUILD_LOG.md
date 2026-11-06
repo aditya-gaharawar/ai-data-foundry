@@ -1,6 +1,6 @@
 # Build evidence log
 
-Latest checkpoint: **2026-11-06 01:29 IST**, P07–P12 local expansion. [Detailed evidence](verification/evidence/p07-p12/VERIFICATION.md). Historical checkpoints follow.
+Latest checkpoint: **2026-11-06 10:44 IST**, P13 bounded automation and private notifications. [Detailed evidence](verification/evidence/p13/VERIFICATION.md). Historical checkpoints follow.
 
 Delivery checkpoint: **2026-11-05 02:30 IST**. The imported archive was a planning package;
 there was no AI Data Foundry implementation, repository, configured provider or
@@ -160,3 +160,55 @@ No Git remote exists, so no hosted PR or merge is claimed. No paid service,
 private production import, external model inference, cloud resource, public
 publication, remote repository or production system was changed. The source
 bundle excludes private secrets, weights, native binaries and recovery backups.
+
+
+## P13 executed local automation phase
+
+Workflow schedules now pin immutable recipe revisions and enforce future windows,
+interval/daily cadence, IANA timezone semantics, launch limits and per-run/total
+internal budget caps. The PostgreSQL due queue in the existing worker dispatches
+real Temporal runs through the shared manual admission function. Current user,
+role, key, source, policy and budget checks can block a launch; transactions leave
+no rejected reservation. Pause/resume/cancel, overlap/backlog skips, immutable
+occurrences and delegated-authority takeover are backed by persisted behavior.
+
+A personal in-app inbox and unread bell consume actual terminal run events and
+schedule notices. Recipient/tenant isolation, deduplication, signed cursors,
+idempotent reads, fresh server cutoffs and current-access navigation are verified.
+No external message delivery was added. Python/TypeScript SDKs, dedicated CLI
+commands, generated OpenAPI contracts and complete console controls are included.
+
+**92 unique tests passed**: 30 unit/contract, 28 integration, 16 security and
+18 browser. The final complete browser run passed against the optimized local
+console, including the existing native CPU model, Blender, compute, evaluation,
+governance and keyboard flows. Lint/types, build, contract/Alembic drift, fresh
+migrations/auth/restart/tenant checks and the existing end-to-end smoke passed.
+Repeated smoke/operator checks are not additional unique tests.
+
+The isolated recovery verified **2,002 object versions / 224,278,437 bytes**,
+**242 manifest seals**, **41 metadata tables**, and two tenants, including an
+actual restored API's auth, tenant-negative and sample-read checks. Temporary
+resources were cleaned up. The bounded 60-request/4-reader check had zero errors,
+60.02 ms p50 and **83.69 ms p95**. These are local measurements, not a production SLA.
+
+All **eight source-bound local readiness gates passed**. The HMAC-signed report
+was recomputed and verified for source
+`f05db523e5f2021bf8885f24d27ae76134873ee6727e9f4f5333426034069a30`.
+Production remains BLOCKED_EXTERNAL. The optional diskcache advisory and existing
+identity, infrastructure, staging, independent review, remote CI/review and SLA
+blockers remain explicit. No feature is marked RELEASED.
+
+Initial added tests used an incorrect governance route/status and were corrected.
+Browser verification then caught an empty-state heading jump and a hidden table
+label that widened mobile documents. Both were fixed. Repeated inbox testing
+also removed cross-test unread-state assumptions and improved mark-all to fetch
+a fresh server cutoff while preserving later notices. Earlier failure logs and
+the final clean run are retained. Historical P00–P12 captures/JSON proofs were
+preserved; current regression captures are copied under the P13 evidence tree.
+
+Feature counts are 72 TESTED / 22 INTEGRATED / 6 NOT_STARTED / 8 BLOCKED_EXTERNAL.
+Branch `phase/p13-automation-notifications`, ADRs and a local PR draft are prepared.
+No Git remote exists, so no hosted PR, push, merge or deployment is claimed.
+Source and screenshot bundles exclude private settings, native weights/binaries,
+raw recovery archives and browser traces. No paid service or production system
+was used or changed. See the detailed report and `commands.json` for evidence.

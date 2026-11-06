@@ -16,6 +16,43 @@ class Domain:
         return self.client.request("POST", "/v1" + path, body or {}, idempotency_key=idempotency_key)
 
 
+class Schedules(Domain):
+    def health(self):
+        return self.get("/schedules/health")
+
+    def preview(self, body):
+        return self.post("/schedules/preview", body)
+
+    def create(self, body, **options):
+        return self.post("/schedules", body, **options)
+
+    def list(self, **page):
+        return self.get("/schedules", **page)
+
+    def retrieve(self, identifier):
+        return self.get(f"/schedules/{identifier}")
+
+    def control(self, identifier, body, **options):
+        return self.post(f"/schedules/{identifier}/control", body, **options)
+
+    def occurrences(self, identifier, **page):
+        return self.get(f"/schedules/{identifier}/occurrences", **page)
+
+
+class Notifications(Domain):
+    def summary(self):
+        return self.get("/notifications/summary")
+
+    def list(self, *, unread=False, **page):
+        return self.get("/notifications", unread=str(unread).lower(), **page)
+
+    def read(self, identifier, **options):
+        return self.post(f"/notifications/{identifier}/read", **options)
+
+    def read_all(self, before, **options):
+        return self.post("/notifications/read-all", {"before": before}, **options)
+
+
 class Providers(Domain):
     def catalog(self):
         return self.get("/providers/catalog")

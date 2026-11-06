@@ -40,6 +40,8 @@ SCOPES = [
     "governance:manage",
     "operations:manage",
     "holdouts:read",
+    "schedules:manage",
+    "notifications:read",
 ]
 ROLES = {
     "Owner": SCOPES,
@@ -51,9 +53,11 @@ ROLES = {
         "annotations:manage",
         "annotations:review",
         "evaluations:write",
+        "schedules:manage",
+        "notifications:read",
     ],
-    "Labeler": ["datasets:read", "annotations:review"],
-    "Viewer": ["datasets:read"],
+    "Labeler": ["datasets:read", "annotations:review", "notifications:read"],
+    "Viewer": ["datasets:read", "notifications:read"],
 }
 
 

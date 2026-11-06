@@ -7,12 +7,11 @@ from pathlib import Path
 
 import httpx
 from dotenv import dotenv_values
-from operational_checks import save_proof
+from operational_checks import evidence_directory, save_proof
 
 
 def main():
-    evidence = Path(".local/evidence/p07-p12")
-    evidence.mkdir(parents=True, exist_ok=True)
+    evidence = evidence_directory()
     npm = subprocess.run(["pnpm", "audit", "--json"], capture_output=True, text=True)
     if npm.returncode not in (0, 1):
         raise RuntimeError("npm advisory service unavailable; no clean scan is claimed.")

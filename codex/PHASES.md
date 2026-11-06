@@ -17,3 +17,4 @@ Use the detailed P00-P12 files in this directory. Every phase contains: outcome,
 | P10 Evaluation/feedback | P05 | Comparison and benchmark feedback workflow |
 | P11 Enterprise and billing | P05 | Enterprise controls and reconciled charges |
 | P12 Release hardening | All launched subsystems | Restore, security, load, launch approval |
+| P13 Bounded local automation | Verified P00–P12 local slices | Real scheduled runs, revocation/budget/recovery guards, private inbox, SDK/CLI/browser proof |

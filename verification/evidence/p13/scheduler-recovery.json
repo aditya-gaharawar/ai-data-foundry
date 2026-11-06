@@ -1,0 +1,44 @@
+{
+  "worker_replaced": true,
+  "duplicate_dispatchers": 4,
+  "occurrences": [
+    {
+      "id": "occ_4bad7764a38540cc88552f8583b32152",
+      "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+      "created_at": "2026-11-06T04:45:24.168069Z",
+      "schedule_id": "sch_d34f2e848485488790206879112a3a35",
+      "scheduled_at": "2026-11-06T04:45:43.404280Z",
+      "status": "MISSED",
+      "run_id": null,
+      "code": "LATE_TICK",
+      "message": "The worker missed the 120-second launch window. Backlog was skipped.",
+      "estimate_micro": 0
+    },
+    {
+      "id": "occ_7c4f73d089a74fe28bfe017c9abc7d17",
+      "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+      "created_at": "2026-11-06T04:45:24.126761Z",
+      "schedule_id": "sch_d34f2e848485488790206879112a3a35",
+      "scheduled_at": "2026-11-06T04:45:33.404280Z",
+      "status": "SKIPPED",
+      "run_id": null,
+      "code": "OVERLAP",
+      "message": "The previous scheduled run is still active. This occurrence was skipped.",
+      "estimate_micro": 0
+    },
+    {
+      "id": "occ_fcc6615f5d424a809a66838625d5742a",
+      "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+      "created_at": "2026-11-06T04:45:24.084997Z",
+      "schedule_id": "sch_d34f2e848485488790206879112a3a35",
+      "scheduled_at": "2026-11-06T04:45:23.404280Z",
+      "status": "LAUNCHED",
+      "run_id": "run_a11cd8784fe94a1d9138625b2df2a334",
+      "code": "ADMITTED",
+      "message": "A real run passed current permission, rights, policy and budget admission.",
+      "estimate_micro": 2000
+    }
+  ],
+  "one_admitted_run": true,
+  "clock_advance_scope": "Direct scheduler process only for overlap/backlog; real persisted run and worker execution."
+}

@@ -52,6 +52,26 @@ class ErasureExecute(Strict):
     plan_sha256: str = Field(pattern="^[a-f0-9]{64}$")
 
 
+def reject_active_schedules(db, target):
+    from .models import WorkflowSchedule
+
+    # Dataset is already locked. Do not lock schedule rows in the reverse order.
+    if db.scalar(
+        select(func.count())
+        .select_from(WorkflowSchedule)
+        .where(
+            WorkflowSchedule.organization_id == target.organization_id,
+            WorkflowSchedule.dataset_id == target.id,
+            WorkflowSchedule.state == "ACTIVE",
+        )
+    ):
+        raise Problem(
+            409,
+            "DATASET_SCHEDULED",
+            "Pause or cancel active schedules before protecting or erasing this dataset.",
+        )
+
+
 def register(app):
     from .api import DB, Auth, audit, commit, get, page, public, replay
 
@@ -128,6 +148,7 @@ def register(app):
         if body.action == "place_legal_hold":
             target.legal_hold = True
         else:
+            reject_active_schedules(db, target)
             if db.scalar(
                 select(func.count())
                 .select_from(Run)
@@ -395,6 +416,7 @@ def register(app):
             return cached
         record = locked_erasure(db, erasure_id, p)
         target = get(db, Dataset, record.dataset_id, p.organization_id)
+        reject_active_schedules(db, target)
         if (
             record.status != "APPROVED"
             or record.ready_after > now()

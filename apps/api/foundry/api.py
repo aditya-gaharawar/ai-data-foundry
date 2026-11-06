@@ -21,6 +21,7 @@ from starlette.exceptions import HTTPException
 from temporalio.client import Client as TemporalClient
 
 from . import schemas as s
+from .automation import register as register_automation
 from .compute import register as register_compute
 from .config import settings
 from .curation_api import register as register_curation
@@ -67,6 +68,7 @@ from .models import (
     Version,
     Webhook,
 )
+from .notifications import register as register_notifications
 from .openapi import enrich
 from .operations import register as register_operations
 from .providers import register as register_providers
@@ -94,7 +96,7 @@ from .storage import read_artifact
 app = FastAPI(
     title="AI Data Foundry API",
     version="0.1.0",
-    description="Local text/image lifecycle, permitted CPU model generation, Blender perception scenes, compute leases, evaluation, governance and operator evidence. Unconfigured external providers, clusters, RTX Isaac and production identity remain blocked.",
+    description="Local text/image lifecycle, permitted CPU model generation, Blender scenes, compute leases, evaluation, governance, bounded workflow schedules, personal in-app notifications and operator evidence. Unconfigured external providers, clusters, RTX Isaac and production identity remain blocked.",
     openapi_url="/v1/openapi.json",
     docs_url="/v1/docs",
     redoc_url=None,
@@ -966,6 +968,15 @@ def submit_run(body: s.RunCreate, request: Request, p: Auth, db: DB):
     p.require("runs:execute")
     if cached := replay(db, p, request, body.model_dump(mode="json")):
         return cached
+    record = admit_run(db, p, body, request_id=request.state.request_id)
+    result = commit(db, request, public(record), 202)
+    result.headers["Location"] = f"/v1/runs/{record.id}"
+    return result
+
+
+def plan_run(db, p, body: s.RunCreate):
+    """Validate current authority, rights, source, policy and budget without reserving."""
+    p.require("runs:execute")
     target = get(db, Dataset, body.dataset_id, p.organization_id)
     revision = get(db, RecipeRevision, body.recipe_revision_id, p.organization_id)
     recipe_record = get(db, Recipe, revision.recipe_id, p.organization_id)
@@ -1021,13 +1032,21 @@ def submit_run(body: s.RunCreate, request: Request, p: Auth, db: DB):
         or organization.spent_micro + organization.reserved_micro + cost > organization.budget_micro
     ):
         raise Problem(402, "BUDGET_EXCEEDED", "The estimate exceeds the recipe, run, or organization budget.")
+    return target, revision, count, cost, min(budget, recipe_budget), organization, admitted_policy
+
+
+def admit_run(db, p, body: s.RunCreate, *, request_id: str, schedule_id: str | None = None):
+    """Shared transactional admission; caller owns commit and idempotency."""
+    target, revision, count, cost, budget, organization, admitted_policy = plan_run(db, p, body)
     organization.reserved_micro += cost
     record = Run(
         id=uid("run"),
         organization_id=p.organization_id,
         dataset_id=target.id,
         recipe_revision_id=revision.id,
-        max_budget_micro=min(budget, recipe_budget),
+        submitted_by=p.user_id,
+        schedule_id=schedule_id,
+        max_budget_micro=budget,
         reserved_micro=cost,
         sample_count=count,
         checkpoint={
@@ -1057,10 +1076,17 @@ def submit_run(body: s.RunCreate, request: Request, p: Auth, db: DB):
         )
     )
     emit(db, p.organization_id, "run.queued", record.id, {"run_id": record.id})
-    audit(db, p, request, "run.submitted", record.id)
-    result = commit(db, request, public(record), 202)
-    result.headers["Location"] = f"/v1/runs/{record.id}"
-    return result
+    db.add(
+        Audit(
+            id=uid("aud"),
+            organization_id=p.organization_id,
+            actor_id=p.key_id or p.user_id,
+            action="run.scheduled" if schedule_id else "run.submitted",
+            resource_id=record.id,
+            request_id=request_id,
+        )
+    )
+    return record
 
 
 @app.get("/v1/runs", tags=["Runs"], response_model=Page[RunOut])
@@ -1572,6 +1598,8 @@ register_evaluation(app)
 register_governance(app)
 register_scim(app)
 register_operations(app)
+register_automation(app)
+register_notifications(app)
 
 # Starlette matches in registration order: the existing /versions/{id} route
 # must not consume the literal comparison endpoint introduced in P10.

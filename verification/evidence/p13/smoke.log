@@ -1,0 +1,3 @@
+uv run python scripts/smoke.py
+.                                                                        [100%]
+1 passed in 3.04s

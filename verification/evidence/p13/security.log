@@ -1,0 +1,3 @@
+uv run pytest -q -m security
+................                                                         [100%]
+16 passed, 58 deselected in 52.71s

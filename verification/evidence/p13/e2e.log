@@ -1,0 +1,27 @@
+pnpm test:e2e
+$ playwright test
+
+Running 18 tests using 1 worker
+
+(node:559057) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/automation.spec.ts:145:5 › schedule preview and approval publish a real version and private inbox notice (34.5s)
+  ✓   2 tests/e2e/automation.spec.ts:244:5 › schedule pause resume cancel and responsive dark inbox controls (8.6s)
+  ✓   3 tests/e2e/core.spec.ts:30:5 › create → durable run → quality → immutable version → real JSONL download (9.2s)
+  ✓   4 tests/e2e/core.spec.ts:108:5 › administrator provisions a separate viewer account and permissions apply (4.7s)
+  ✓   5 tests/e2e/core.spec.ts:140:5 › priority routes are responsive, accessible, and support both themes (24.8s)
+  ✓   6 tests/e2e/core.spec.ts:195:5 › keyboard palette, mobile navigation, errors and logout (2.4s)
+  ✓   7 tests/e2e/core.spec.ts:252:5 › browser multipart upload reaches a verified version and escapes sample HTML (7.4s)
+  ✓   8 tests/e2e/curation.spec.ts:86:5 › image upload → box review → data card → durable publication → matching COCO and YOLO (35.5s)
+  ✓   9 tests/e2e/curation.spec.ts:285:5 › two independent labelers correct, disagree, and receive independent adjudication (19.0s)
+  ✓  10 tests/e2e/expansion.spec.ts:134:5 › Teacher Studio records rights and launches genuine local inference (8.1s)
+  ✓  11 tests/e2e/expansion.spec.ts:207:5 › Simulation Studio renders frames and shows a verified protected 3D scene (9.9s)
+  ✓  12 tests/e2e/expansion.spec.ts:250:5 › Compute console enrolls an actual outbound verifier and records its result (8.1s)
+  ✓  13 tests/e2e/expansion.spec.ts:311:5 › Evaluations console compares versions, imports fixture counts, and saves approved feedback (15.9s)
+  ✓  14 tests/e2e/expansion.spec.ts:444:5 › Governance console records policy, legal hold, independent request, and SCIM revocation (4.9s)
+  ✓  15 tests/e2e/expansion.spec.ts:514:5 › Governance erasure previews a sealed plan and completes after independent approval (22.9s)
+  ✓  16 tests/e2e/expansion.spec.ts:614:5 › Operations console persists reconciliation, incidents, and signed readiness (4.4s)
+  ✓  17 tests/e2e/expansion.spec.ts:645:5 › All expansion pages are accessible and fit desktop, tablet, mobile, and 200% zoom (34.6s)
+  ✓  18 tests/e2e/keyboard.spec.ts:19:5 › keyboard-only lifecycle from sign-in through JSONL export (11.4s)
+
+  18 passed (4.5m)

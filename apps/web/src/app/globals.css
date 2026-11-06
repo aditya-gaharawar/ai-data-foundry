@@ -1108,7 +1108,8 @@ tbody tr:hover {
   margin-bottom: 15px;
   background: var(--surface);
 }
-.empty h3 {
+.empty h3,
+.empty h2 {
   font-size: 13px;
 }
 .empty p {
@@ -2157,5 +2158,164 @@ pre {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Bounded automation and private inbox */
+.notification-bell {
+  position: relative;
+}
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  min-width: 15px;
+  padding: 1px 3px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--canvas);
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+.inbox-toolbar,
+.inline-actions,
+.schedule-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.inbox-toolbar {
+  justify-content: flex-end;
+  margin: 22px 0;
+}
+.inbox-toolbar > .muted {
+  margin-right: auto;
+}
+.notice-item {
+  display: flex;
+  gap: 14px;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.notice-item:last-child {
+  border-bottom: 0;
+}
+.notice-dot {
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: transparent;
+  flex-shrink: 0;
+}
+.is-unread .notice-dot {
+  background: var(--text);
+}
+.notice-copy {
+  flex: 1;
+  min-width: 0;
+}
+.notice-copy p {
+  color: var(--muted);
+  margin: 8px 0;
+}
+.notice-copy small {
+  color: var(--muted);
+}
+.notice-copy .inline-actions {
+  margin-top: 12px;
+}
+.automation-summary {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.automation-summary > div:first-of-type {
+  flex: 1;
+}
+.automation-summary p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+.automation-summary small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.automation-note {
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 20px;
+}
+.schedule-detail {
+  margin-top: 24px;
+}
+.schedule-list td small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+.automation-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 0 0 24px;
+}
+.automation-facts dt {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+.automation-facts dd {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.schedule-controls {
+  margin: 18px 0;
+}
+.schedule-controls .check-label {
+  flex-basis: 100%;
+}
+.schedule-modal {
+  max-width: 700px;
+}
+.schedule-preview {
+  margin-top: 22px;
+  border-top: 1px solid var(--border);
+  padding-top: 22px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.schedule-preview ol {
+  max-height: 180px;
+  overflow: auto;
+  padding-left: 20px;
+}
+.schedule-preview .check-label {
+  margin: 18px 0;
+}
+@media (max-width: 640px) {
+  .automation-summary {
+    align-items: flex-start;
+    padding: 18px;
+    flex-wrap: wrap;
+  }
+  .automation-summary > div:first-of-type {
+    flex-basis: calc(100% - 50px);
+  }
+  .automation-facts {
+    grid-template-columns: 1fr;
+  }
+  .notice-item {
+    padding: 18px 12px;
+    gap: 9px;
+  }
+  .inbox-toolbar {
+    justify-content: flex-start;
   }
 }

@@ -151,6 +151,13 @@ def readiness(db, org):
     heartbeat = db.get(Heartbeat, "cpu")
     fresh = bool(heartbeat and heartbeat.seen_at > now() - timedelta(seconds=20))
     checks = [{"gate": "durable_local_worker", "state": "PASS" if fresh else "FAIL"}]
+    scheduler = db.get(Heartbeat, "scheduler")
+    checks.append(
+        {
+            "gate": "bounded_schedule_worker",
+            "state": "PASS" if scheduler and scheduler.seen_at > now() - timedelta(seconds=20) else "FAIL",
+        }
+    )
     ledger = reconcile(db, org)
     checks.append({"gate": "ledger_reconciliation", "state": ledger["status"]})
     for kind in ("restore", "load", "security", "regression", "rollback"):

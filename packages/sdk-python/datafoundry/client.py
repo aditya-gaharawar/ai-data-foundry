@@ -8,7 +8,17 @@ from pathlib import Path
 
 import httpx
 
-from .domains import Compute, Evaluations, Governance, Operations, Providers, Provisioning, Simulations
+from .domains import (
+    Compute,
+    Evaluations,
+    Governance,
+    Notifications,
+    Operations,
+    Providers,
+    Provisioning,
+    Schedules,
+    Simulations,
+)
 from .models import AnnotationTaskOut, CurationOut, DatasetOut, QualityProfileOut, RecipeOut, RunOut
 
 
@@ -52,6 +62,8 @@ class DataFoundry:
         self.governance = Governance(self)
         self.operations = Operations(self)
         self.scim = Provisioning(self)
+        self.schedules = Schedules(self)
+        self.notifications = Notifications(self)
 
     def request(self, method, path, body=None, *, idempotency_key=None, headers=None):
         headers = {

@@ -17,6 +17,11 @@ erasure, ledger operations and signed local readiness/recovery evidence. See
 [the expansion guide](docs/runbooks/expansion.md). This is a local candidate;
 external integrations and production release remain blocked.
 
+P13 adds bounded interval/daily workflow schedules and a personal in-app inbox.
+Each launch rechecks current permissions, rights, governance and budget; pause,
+resume, cancellation and immutable occurrence history work through the console,
+API, SDKs and CLI. See [the automation guide](docs/P13_AUTOMATION.md).
+
 ## Start
 
 Requirements: Linux AMD64, Node 24, pnpm 11.25, Python 3.12, uv 0.13.4,

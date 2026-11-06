@@ -22,6 +22,7 @@ from .models import (
     SearchEntry,
     Upload,
     Version,
+    WorkflowSchedule,
 )
 from .schemas import Strict
 from .security import canonical, digest
@@ -114,7 +115,7 @@ def visible_condition(cls, p):
         accessible = accessible.where(Dataset.protection != "holdout")
     if cls is Dataset:
         return Dataset.id.in_(accessible)
-    if cls in (Run, Upload, Version, Curation, SearchEntry):
+    if cls in (Run, Upload, Version, Curation, SearchEntry, WorkflowSchedule):
         return cls.dataset_id.in_(accessible)
     versions = select(Version.id).where(
         Version.organization_id == p.organization_id, Version.dataset_id.in_(accessible)

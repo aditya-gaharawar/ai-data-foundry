@@ -1,0 +1,3 @@
+$ pnpm --filter @datafoundry/web typecheck && pnpm --filter @datafoundry/sdk typecheck
+$ tsc --noEmit
+$ tsc --noEmit

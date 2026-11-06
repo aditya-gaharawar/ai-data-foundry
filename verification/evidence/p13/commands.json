@@ -1,0 +1,105 @@
+{
+  "source_sha256": "f05db523e5f2021bf8885f24d27ae76134873ee6727e9f4f5333426034069a30",
+  "final_commands": [
+    {
+      "command": "make lint",
+      "exit_code": 0,
+      "log": "lint-final.log",
+      "result": "Ruff style/format and both TypeScript packages passed"
+    },
+    {
+      "command": "make test",
+      "exit_code": 0,
+      "log": "unit-contract-final.log",
+      "result": "30 passed"
+    },
+    {
+      "command": "make test-integration",
+      "exit_code": 0,
+      "log": "integration.log",
+      "result": "28 passed"
+    },
+    {
+      "command": "make test-security",
+      "exit_code": 0,
+      "log": "security.log",
+      "result": "16 passed"
+    },
+    {
+      "command": "make test-e2e",
+      "exit_code": 0,
+      "log": "e2e.log",
+      "result": "18 passed against optimized local console"
+    },
+    {
+      "command": "make smoke",
+      "exit_code": 0,
+      "log": "smoke.log",
+      "result": "1 existing integration flow repeated; not an extra unique test"
+    },
+    {
+      "command": "pnpm build",
+      "exit_code": 0,
+      "log": "build.log",
+      "result": "Next.js optimized build passed"
+    },
+    {
+      "command": "uv run python scripts/verify_fresh_database.py",
+      "exit_code": 0,
+      "log": "fresh-database.log",
+      "result": "Fresh migration/seed/drift/auth/restart/tenant checks passed"
+    },
+    {
+      "command": "uv run alembic check",
+      "exit_code": 0,
+      "log": "alembic.log",
+      "result": "No new upgrade operations"
+    },
+    {
+      "command": "uv run python scripts/contracts.py --check",
+      "exit_code": 0,
+      "log": "contracts.log",
+      "result": "OpenAPI 3.1 / 123 paths / 90 Python models current"
+    },
+    {
+      "command": "FOUNDRY_EVIDENCE_DIR=.local/evidence/p13 uv run python scripts/operational_checks.py load",
+      "exit_code": 0,
+      "log": "load.log",
+      "result": "60 requests / 4 readers / zero errors"
+    },
+    {
+      "command": "FOUNDRY_EVIDENCE_DIR=.local/evidence/p13 uv run python scripts/operational_checks.py restore",
+      "exit_code": 0,
+      "log": "restore.log",
+      "result": "Actual isolated database and object-version restore + restored API passed"
+    },
+    {
+      "command": "FOUNDRY_EVIDENCE_DIR=.local/evidence/p13 uv run python scripts/security_review.py",
+      "exit_code": 0,
+      "log": "dependency-security.log",
+      "result": "Real npm/OSV queries and private-value scan; documented optional residual retained"
+    }
+  ],
+  "earlier_browser_attempts": [
+    {
+      "log": "e2e-initial.log",
+      "exit_code": 1
+    },
+    {
+      "log": "e2e-first-full.log",
+      "exit_code": 1
+    },
+    {
+      "log": "e2e-second-full.log",
+      "exit_code": 1
+    }
+  ],
+  "unique_tests": {
+    "unit_contract": 30,
+    "integration": 28,
+    "security": 16,
+    "browser": 18,
+    "total": 92
+  },
+  "repeats_are_not_extra_tests": true
+}

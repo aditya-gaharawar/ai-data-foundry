@@ -535,6 +535,90 @@ export class DataFoundry {
     revokeProvisioningToken: (id: string, key?: string) =>
       this.request("POST", `/v1/governance/scim-tokens/${id}/revoke`, {}, key),
   };
+  schedules = {
+    health: () =>
+      this.request<components["schemas"]["SchedulerHealth"]>(
+        "GET",
+        "/v1/schedules/health",
+      ),
+    preview: (body: components["schemas"]["SchedulePreview"]) =>
+      this.request<components["schemas"]["SchedulePreviewOut"]>(
+        "POST",
+        "/v1/schedules/preview",
+        body,
+      ),
+    create: (body: components["schemas"]["ScheduleCreate"], key?: string) =>
+      this.request<components["schemas"]["ScheduleOut"]>(
+        "POST",
+        "/v1/schedules",
+        body,
+        key,
+      ),
+    list: (query: { limit?: number; cursor?: string } = {}) =>
+      this.request<Page<components["schemas"]["ScheduleOut"]>>(
+        "GET",
+        "/v1/schedules?" +
+          new URLSearchParams(
+            Object.entries(query).map(([key, value]) => [key, String(value)]),
+          ),
+      ),
+    retrieve: (id: string) =>
+      this.request<components["schemas"]["ScheduleOut"]>(
+        "GET",
+        `/v1/schedules/${id}`,
+      ),
+    control: (
+      id: string,
+      body: components["schemas"]["ScheduleControl"],
+      key?: string,
+    ) =>
+      this.request<components["schemas"]["ScheduleOut"]>(
+        "POST",
+        `/v1/schedules/${id}/control`,
+        body,
+        key,
+      ),
+    occurrences: (
+      id: string,
+      query: { limit?: number; cursor?: string } = {},
+    ) =>
+      this.request<Page<components["schemas"]["OccurrenceOut"]>>(
+        "GET",
+        `/v1/schedules/${id}/occurrences?` +
+          new URLSearchParams(
+            Object.entries(query).map(([key, value]) => [key, String(value)]),
+          ),
+      ),
+  };
+  notifications = {
+    summary: () =>
+      this.request<components["schemas"]["NotificationSummary"]>(
+        "GET",
+        "/v1/notifications/summary",
+      ),
+    list: (query: { limit?: number; cursor?: string; unread?: boolean } = {}) =>
+      this.request<Page<components["schemas"]["NotificationOut"]>>(
+        "GET",
+        "/v1/notifications?" +
+          new URLSearchParams(
+            Object.entries(query).map(([key, value]) => [key, String(value)]),
+          ),
+      ),
+    read: (id: string, key?: string) =>
+      this.request<components["schemas"]["NotificationOut"]>(
+        "POST",
+        `/v1/notifications/${id}/read`,
+        {},
+        key,
+      ),
+    readAll: (before: string, key?: string) =>
+      this.request<components["schemas"]["ReadAllOut"]>(
+        "POST",
+        "/v1/notifications/read-all",
+        { before },
+        key,
+      ),
+  };
   operations = {
     status: () =>
       this.request<Record<string, unknown>>("GET", "/v1/operations/status"),

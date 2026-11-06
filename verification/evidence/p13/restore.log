@@ -1,0 +1,45 @@
+{
+  "kind": "restore",
+  "source_sha256": "f05db523e5f2021bf8885f24d27ae76134873ee6727e9f4f5333426034069a30",
+  "report": {
+    "scope": "local",
+    "recorded_at": "2026-11-06T05:12:16.046695+00:00",
+    "status": "PASS",
+    "database_tables_verified": 41,
+    "tenant_count": 2,
+    "version_manifests_verified": 242,
+    "object_versions_verified": 2002,
+    "object_bytes_verified": 224278437,
+    "archive_sha256": "990f26e615bc054b64981b21994251823f51213ef3732ddc71c5855bf71e8c51",
+    "elapsed_seconds": 41.53,
+    "archive_permissions": "0600; private local metadata only",
+    "checks": [
+      "pg_dump/pg_restore into isolated database",
+      "every restored object byte checksum",
+      "immutable version manifest seals",
+      "per-tenant dataset boundaries",
+      "original object-version references mapped without modifying manifests"
+    ],
+    "limits": "Local PostgreSQL+S3 recovery. Temporal dev-server workflow history and external KMS/SSO are not backed up here. Operator secret is a separately managed recovery prerequisite. Maintenance blocks API writes; no active jobs allowed.",
+    "restored_api_auth_and_tenant_isolation": "PASS",
+    "restored_api_sample_read": "PASS"
+  }
+}
+{
+  "kind": "rollback",
+  "source_sha256": "f05db523e5f2021bf8885f24d27ae76134873ee6727e9f4f5333426034069a30",
+  "report": {
+    "scope": "local",
+    "recorded_at": "2026-11-06T05:12:16.338464+00:00",
+    "status": "PASS",
+    "checks": [
+      "isolated restored API launched on loopback port 37653",
+      "local password auth",
+      "tenant-negative read",
+      "restored immutable sample read",
+      "isolated API terminated; live 8000 configuration unchanged"
+    ],
+    "limits": "Recovery configuration rehearsal only. No staging release/traffic rollback is claimed.",
+    "archive_sha256": "990f26e615bc054b64981b21994251823f51213ef3732ddc71c5855bf71e8c51"
+  }
+}

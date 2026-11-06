@@ -44,6 +44,8 @@ class RunOut(BaseModel):
     organization_id: str
     dataset_id: str
     recipe_revision_id: str
+    submitted_by: str | None = None
+    schedule_id: str | None = None
     status: Literal["QUEUED", "RUNNING", "VERIFYING", "PUBLISHING", "SUCCEEDED", "FAILED", "CANCELLED"]
     sample_count: int
     processed: int

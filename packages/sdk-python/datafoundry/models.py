@@ -293,6 +293,38 @@ class NameCreate(BaseModel):
     name: str = Field(..., alias="name")
 
 
+class NotificationOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    id: str = Field(..., alias="id")
+    organization_id: str = Field(..., alias="organization_id")
+    created_at: str = Field(..., alias="created_at")
+    kind: str = Field(..., alias="kind")
+    title: str = Field(..., alias="title")
+    body: str = Field(..., alias="body")
+    read_at: str | None = Field(..., alias="read_at")
+    target: str | None = Field(..., alias="target")
+
+
+class NotificationSummary(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    unread_count: int = Field(..., alias="unread_count")
+    as_of: str = Field(..., alias="as_of")
+
+
+class OccurrenceOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    id: str = Field(..., alias="id")
+    organization_id: str = Field(..., alias="organization_id")
+    created_at: str = Field(..., alias="created_at")
+    schedule_id: str = Field(..., alias="schedule_id")
+    scheduled_at: str = Field(..., alias="scheduled_at")
+    status: str = Field(..., alias="status")
+    run_id: str | None = Field(..., alias="run_id")
+    code: str = Field(..., alias="code")
+    message: str = Field(..., alias="message")
+    estimate_micro: int = Field(..., alias="estimate_micro")
+
+
 class Page_AnnotationTaskOut_(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     items: list[AnnotationTaskOut] = Field(..., alias="items")
@@ -317,6 +349,18 @@ class Page_KeyOut_(BaseModel):
     next_cursor: str | None = Field(None, alias="next_cursor")
 
 
+class Page_NotificationOut_(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    items: list[NotificationOut] = Field(..., alias="items")
+    next_cursor: str | None = Field(None, alias="next_cursor")
+
+
+class Page_OccurrenceOut_(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    items: list[OccurrenceOut] = Field(..., alias="items")
+    next_cursor: str | None = Field(None, alias="next_cursor")
+
+
 class Page_ProviderOut_(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     items: list[ProviderOut] = Field(..., alias="items")
@@ -338,6 +382,12 @@ class Page_RecipeOut_(BaseModel):
 class Page_RunOut_(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     items: list[RunOut] = Field(..., alias="items")
+    next_cursor: str | None = Field(None, alias="next_cursor")
+
+
+class Page_ScheduleOut_(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    items: list[ScheduleOut] = Field(..., alias="items")
     next_cursor: str | None = Field(None, alias="next_cursor")
 
 
@@ -457,6 +507,17 @@ class QualityProfileOut(BaseModel):
     created_at: str = Field(..., alias="created_at")
 
 
+class ReadAll(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    before: str = Field(..., alias="before")
+
+
+class ReadAllOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    marked_read: int = Field(..., alias="marked_read")
+    before: str = Field(..., alias="before")
+
+
 class RecipeCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     project_id: str = Field(..., alias="project_id")
@@ -519,6 +580,8 @@ class RunOut(BaseModel):
     organization_id: str = Field(..., alias="organization_id")
     dataset_id: str = Field(..., alias="dataset_id")
     recipe_revision_id: str = Field(..., alias="recipe_revision_id")
+    submitted_by: str | None = Field(None, alias="submitted_by")
+    schedule_id: str | None = Field(None, alias="schedule_id")
     status: Literal["QUEUED", "RUNNING", "VERIFYING", "PUBLISHING", "SUCCEEDED", "FAILED", "CANCELLED"] = (
         Field(..., alias="status")
     )
@@ -535,6 +598,92 @@ class RunOut(BaseModel):
     created_at: str = Field(..., alias="created_at")
     started_at: str | None = Field(None, alias="started_at")
     finished_at: str | None = Field(None, alias="finished_at")
+
+
+class ScheduleControl(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    action: Literal["pause", "resume", "cancel"] = Field(..., alias="action")
+    expected_revision: int = Field(..., alias="expected_revision")
+    approved_for_scheduled_execution: bool | None = Field(None, alias="approved_for_scheduled_execution")
+
+
+class ScheduleCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    dataset_id: str = Field(..., alias="dataset_id")
+    recipe_revision_id: str = Field(..., alias="recipe_revision_id")
+    definition: ScheduleDefinition = Field(..., alias="definition")
+    max_runs: int = Field(..., alias="max_runs")
+    run_budget_usd: float | str = Field(..., alias="run_budget_usd")
+    total_budget_usd: float | str = Field(..., alias="total_budget_usd")
+    approved_for_scheduled_execution: bool = Field(..., alias="approved_for_scheduled_execution")
+
+
+class ScheduleDefinition(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    mode: Literal["interval", "daily"] | None = Field(None, alias="mode")
+    starts_at: str = Field(..., alias="starts_at")
+    ends_at: str = Field(..., alias="ends_at")
+    timezone: str | None = Field(None, alias="timezone")
+    interval_seconds: int | None = Field(None, alias="interval_seconds")
+    daily_time: str | None = Field(None, alias="daily_time")
+
+
+class ScheduleOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    id: str = Field(..., alias="id")
+    organization_id: str = Field(..., alias="organization_id")
+    created_at: str = Field(..., alias="created_at")
+    name: str = Field(..., alias="name")
+    dataset_id: str = Field(..., alias="dataset_id")
+    recipe_revision_id: str = Field(..., alias="recipe_revision_id")
+    created_by: str = Field(..., alias="created_by")
+    authorized_by: str = Field(..., alias="authorized_by")
+    authorized_key_id: str | None = Field(..., alias="authorized_key_id")
+    definition: ScheduleDefinition = Field(..., alias="definition")
+    state: Literal["ACTIVE", "PAUSED", "BLOCKED", "COMPLETED", "EXPIRED", "CANCELLED"] = Field(
+        ..., alias="state"
+    )
+    next_run_at: str | None = Field(..., alias="next_run_at")
+    last_run_at: str | None = Field(..., alias="last_run_at")
+    max_runs: int = Field(..., alias="max_runs")
+    launched_runs: int = Field(..., alias="launched_runs")
+    skipped_runs: int = Field(..., alias="skipped_runs")
+    run_budget_micro: int = Field(..., alias="run_budget_micro")
+    total_budget_micro: int = Field(..., alias="total_budget_micro")
+    admitted_micro: int = Field(..., alias="admitted_micro")
+    revision: int = Field(..., alias="revision")
+    last_error_code: str | None = Field(..., alias="last_error_code")
+    last_error: str | None = Field(..., alias="last_error")
+
+
+class SchedulePreview(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(..., alias="name")
+    dataset_id: str = Field(..., alias="dataset_id")
+    recipe_revision_id: str = Field(..., alias="recipe_revision_id")
+    definition: ScheduleDefinition = Field(..., alias="definition")
+    max_runs: int = Field(..., alias="max_runs")
+    run_budget_usd: float | str = Field(..., alias="run_budget_usd")
+    total_budget_usd: float | str = Field(..., alias="total_budget_usd")
+
+
+class SchedulePreviewOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    sample_count: int = Field(..., alias="sample_count")
+    estimate_micro: int = Field(..., alias="estimate_micro")
+    admitted_limit_micro: int = Field(..., alias="admitted_limit_micro")
+    affordable_runs: int = Field(..., alias="affordable_runs")
+    next_occurrences: list[str] = Field(..., alias="next_occurrences")
+    semantics: str = Field(..., alias="semantics")
+
+
+class SchedulerHealth(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    status: Literal["READY", "UNAVAILABLE"] = Field(..., alias="status")
+    last_heartbeat: str | None = Field(..., alias="last_heartbeat")
+    late_grace_seconds: int = Field(..., alias="late_grace_seconds")
+    minimum_interval_seconds: int = Field(..., alias="minimum_interval_seconds")
 
 
 class ScimName(BaseModel):
@@ -654,6 +803,7 @@ class WebhookCreate(BaseModel):
             "run.started",
             "run.progress",
             "run.failed",
+            "run.cancelled",
             "run.succeeded",
             "dataset.version.published",
             "export.ready",
@@ -705,14 +855,20 @@ Login.model_rebuild()
 MemberCreate.model_rebuild()
 MemberPatch.model_rebuild()
 NameCreate.model_rebuild()
+NotificationOut.model_rebuild()
+NotificationSummary.model_rebuild()
+OccurrenceOut.model_rebuild()
 Page_AnnotationTaskOut_.model_rebuild()
 Page_CurationOut_.model_rebuild()
 Page_DatasetOut_.model_rebuild()
 Page_KeyOut_.model_rebuild()
+Page_NotificationOut_.model_rebuild()
+Page_OccurrenceOut_.model_rebuild()
 Page_ProviderOut_.model_rebuild()
 Page_QualityProfileOut_.model_rebuild()
 Page_RecipeOut_.model_rebuild()
 Page_RunOut_.model_rebuild()
+Page_ScheduleOut_.model_rebuild()
 Page_UploadOut_.model_rebuild()
 Page_VersionOut_.model_rebuild()
 Page_WebhookOut_.model_rebuild()
@@ -726,6 +882,8 @@ ProviderCreate.model_rebuild()
 ProviderOut.model_rebuild()
 QualityProfileCreate.model_rebuild()
 QualityProfileOut.model_rebuild()
+ReadAll.model_rebuild()
+ReadAllOut.model_rebuild()
 RecipeCreate.model_rebuild()
 RecipeOut.model_rebuild()
 ResourceOut.model_rebuild()
@@ -733,6 +891,13 @@ ReviewDecision.model_rebuild()
 RevisionOut.model_rebuild()
 RunCreate.model_rebuild()
 RunOut.model_rebuild()
+ScheduleControl.model_rebuild()
+ScheduleCreate.model_rebuild()
+ScheduleDefinition.model_rebuild()
+ScheduleOut.model_rebuild()
+SchedulePreview.model_rebuild()
+SchedulePreviewOut.model_rebuild()
+SchedulerHealth.model_rebuild()
 ScimName.model_rebuild()
 ScimPatch.model_rebuild()
 ScimRole.model_rebuild()

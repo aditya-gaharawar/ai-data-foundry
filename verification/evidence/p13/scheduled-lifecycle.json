@@ -1,0 +1,69 @@
+{
+  "schedule": {
+    "id": "sch_d6a42d1b0e9f4355939d9ea20403fab1",
+    "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+    "created_at": "2026-11-06T04:45:02.865966Z",
+    "name": "Verified bounded automation",
+    "dataset_id": "ds_0e46eb39cfb0460ab13951e753dc42a3",
+    "recipe_revision_id": "rev_d96861aef09841df83b5cd92ab80407c",
+    "created_by": "usr_60a6981628aa4396910f79638f36bb42",
+    "authorized_by": "usr_60a6981628aa4396910f79638f36bb42",
+    "authorized_key_id": null,
+    "definition": {
+      "mode": "interval",
+      "starts_at": "2026-11-06T04:45:05.777120Z",
+      "ends_at": "2026-11-06T04:55:05.777120Z",
+      "timezone": "Asia/Kolkata",
+      "interval_seconds": 10,
+      "daily_time": null
+    },
+    "state": "COMPLETED",
+    "next_run_at": null,
+    "last_run_at": "2026-11-06T04:45:16.286222Z",
+    "max_runs": 2,
+    "launched_runs": 2,
+    "skipped_runs": 0,
+    "run_budget_micro": 1000000,
+    "total_budget_micro": 2000000,
+    "admitted_micro": 6000,
+    "revision": 3,
+    "last_error_code": null,
+    "last_error": null
+  },
+  "occurrences": [
+    {
+      "id": "occ_421168eac74c42a6bf66f0108abde2dd",
+      "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+      "created_at": "2026-11-06T04:45:16.320133Z",
+      "schedule_id": "sch_d6a42d1b0e9f4355939d9ea20403fab1",
+      "scheduled_at": "2026-11-06T04:45:15.777120Z",
+      "status": "LAUNCHED",
+      "run_id": "run_575aedadb68644cebb406657c3485799",
+      "code": "ADMITTED",
+      "message": "A real run passed current permission, rights, policy and budget admission.",
+      "estimate_micro": 3000
+    },
+    {
+      "id": "occ_6aca8db7789540509d8b18d014ed1a2a",
+      "organization_id": "org_fab35e28f8724f2aaa2191dba010a928",
+      "created_at": "2026-11-06T04:45:06.037612Z",
+      "schedule_id": "sch_d6a42d1b0e9f4355939d9ea20403fab1",
+      "scheduled_at": "2026-11-06T04:45:05.777120Z",
+      "status": "LAUNCHED",
+      "run_id": "run_6c9e3b456b5f42e5a8ee63e56b01bdc8",
+      "code": "ADMITTED",
+      "message": "A real run passed current permission, rights, policy and budget admission.",
+      "estimate_micro": 3000
+    }
+  ],
+  "run_ids": [
+    "run_575aedadb68644cebb406657c3485799",
+    "run_6c9e3b456b5f42e5a8ee63e56b01bdc8"
+  ],
+  "version_hashes": [
+    "2e6516c03ea578c0c090204aa4381d4901465b856fd452058aaa96b26506de89",
+    "b0dc5002a1932e21585c59d314be207fae5956151e99628f09f28d458cfdc76e"
+  ],
+  "duplicate_notification_count": 2,
+  "cutoff_kept_new_notice": true
+}

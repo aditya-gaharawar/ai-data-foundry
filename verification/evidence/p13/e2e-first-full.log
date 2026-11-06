@@ -1,0 +1,74 @@
+
+Running 18 tests using 1 worker
+
+(node:541864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 tests/e2e/automation.spec.ts:140:5 › schedule preview and approval publish a real version and private inbox notice (45.7s)
+(node:542955) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 tests/e2e/automation.spec.ts:221:5 › schedule pause resume cancel and responsive dark inbox controls (6.8s)
+  ✓   3 tests/e2e/core.spec.ts:30:5 › create → durable run → quality → immutable version → real JSONL download (8.0s)
+  ✓   4 tests/e2e/core.spec.ts:108:5 › administrator provisions a separate viewer account and permissions apply (4.4s)
+  ✓   5 tests/e2e/core.spec.ts:140:5 › priority routes are responsive, accessible, and support both themes (23.9s)
+  ✓   6 tests/e2e/core.spec.ts:195:5 › keyboard palette, mobile navigation, errors and logout (3.0s)
+  ✓   7 tests/e2e/core.spec.ts:252:5 › browser multipart upload reaches a verified version and escapes sample HTML (7.3s)
+  ✓   8 tests/e2e/curation.spec.ts:86:5 › image upload → box review → data card → durable publication → matching COCO and YOLO (32.1s)
+  ✓   9 tests/e2e/curation.spec.ts:285:5 › two independent labelers correct, disagree, and receive independent adjudication (14.7s)
+  ✓  10 tests/e2e/expansion.spec.ts:134:5 › Teacher Studio records rights and launches genuine local inference (9.1s)
+  ✓  11 tests/e2e/expansion.spec.ts:207:5 › Simulation Studio renders frames and shows a verified protected 3D scene (9.0s)
+  ✓  12 tests/e2e/expansion.spec.ts:250:5 › Compute console enrolls an actual outbound verifier and records its result (5.8s)
+  ✓  13 tests/e2e/expansion.spec.ts:311:5 › Evaluations console compares versions, imports fixture counts, and saves approved feedback (14.0s)
+  ✓  14 tests/e2e/expansion.spec.ts:444:5 › Governance console records policy, legal hold, independent request, and SCIM revocation (6.5s)
+  ✓  15 tests/e2e/expansion.spec.ts:514:5 › Governance erasure previews a sealed plan and completes after independent approval (19.4s)
+  ✓  16 tests/e2e/expansion.spec.ts:614:5 › Operations console persists reconciliation, incidents, and signed readiness (4.6s)
+  ✓  17 tests/e2e/expansion.spec.ts:645:5 › All expansion pages are accessible and fit desktop, tablet, mobile, and 200% zoom (34.0s)
+  ✓  18 tests/e2e/keyboard.spec.ts:19:5 › keyboard-only lifecycle from sign-in through JSONL export (11.1s)
+
+
+  1) tests/e2e/automation.spec.ts:140:5 › schedule preview and approval publish a real version and private inbox notice
+
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Mark all as read' })
+        - locator resolved to <button disabled class="button secondary ">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        29 × waiting for element to be visible, enabled and stable
+           - element is not enabled
+         - retrying click action
+           - waiting 500ms
+
+
+      205 |     .click();
+      206 |   await expect(notice.getByText("Read", { exact: true })).toBeVisible();
+    > 207 |   await page.getByRole("button", { name: "Mark all as read" }).click();
+          |                                                                ^
+      208 |   await expect(page.getByText("0 unread", { exact: true })).toBeVisible();
+      209 |   await page.screenshot({
+      210 |     path: `${evidence}/notifications-light-desktop.png`,
+        at /workspace/ai-data-foundry/tests/e2e/automation.spec.ts:207:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .local/test-results/automation-schedule-previe-3397c-on-and-private-inbox-notice/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .local/test-results/automation-schedule-previe-3397c-on-and-private-inbox-notice/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    .local/test-results/automation-schedule-previe-3397c-on-and-private-inbox-notice/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace .local/test-results/automation-schedule-previe-3397c-on-and-private-inbox-notice/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/e2e/automation.spec.ts:140:5 › schedule preview and approval publish a real version and private inbox notice
+  17 passed (4.4m)

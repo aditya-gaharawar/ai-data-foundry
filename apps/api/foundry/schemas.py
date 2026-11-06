@@ -91,12 +91,13 @@ class WebhookCreate(Strict):
             "run.started",
             "run.progress",
             "run.failed",
+            "run.cancelled",
             "run.succeeded",
             "dataset.version.published",
             "export.ready",
             "budget.exhausted",
         ]
-    ] = Field(min_length=1, max_length=8)
+    ] = Field(min_length=1, max_length=9)
 
 
 class ExportCreate(Strict):

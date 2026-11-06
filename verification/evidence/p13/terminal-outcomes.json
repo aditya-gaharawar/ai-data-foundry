@@ -1,0 +1,7 @@
+{
+  "notices": {
+    "/runs/run_60230b9193bd45f5a0ae75f07f7e6fbd": "run.cancelled",
+    "/runs/run_5e1b28da7f7f4b64b7e96c99c5787891": "run.failed"
+  },
+  "cancelled_reservation_usd": 0.0
+}

@@ -1,0 +1,18 @@
+{
+  "kind": "load",
+  "source_sha256": "f05db523e5f2021bf8885f24d27ae76134873ee6727e9f4f5333426034069a30",
+  "report": {
+    "scope": "local",
+    "recorded_at": "2026-11-06T05:10:44.725267+00:00",
+    "status": "PASS",
+    "requests": 60,
+    "concurrency": 4,
+    "errors": 0,
+    "p50_ms": 60.02,
+    "p95_ms": 83.69,
+    "elapsed_seconds": 0.93,
+    "requests_per_second": 64.41,
+    "acceptance": "0 non-200 responses; local p95 <5000ms",
+    "limits": "Single local host, synthetic fixtures, bounded read traffic; not a production SLA."
+  }
+}

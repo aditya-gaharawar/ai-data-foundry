@@ -5,6 +5,8 @@ import {
   ArrowRight,
   BookOpen,
   Box,
+  Bell,
+  CalendarClock,
   Check,
   ChevronsUpDown,
   CircleHelp,
@@ -71,6 +73,11 @@ import { ComputePage } from "./compute-page";
 import { EvaluationPage } from "./evaluation-page";
 import { GovernancePage } from "./governance-page";
 import { OperationsPage } from "./operations-page";
+import {
+  NotificationBell,
+  NotificationsPage,
+  SchedulesPage,
+} from "./automation-pages";
 
 const navigation = [
   {
@@ -83,6 +90,18 @@ const navigation = [
   { label: "Curation", href: "/curation", icon: ListChecks },
   { label: "Workflows", href: "/workflows", icon: GitBranch },
   { label: "Runs", href: "/runs", icon: Activity },
+  {
+    label: "Schedules",
+    href: "/schedules",
+    icon: CalendarClock,
+    scope: "schedules:manage",
+  },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+    scope: "notifications:read",
+  },
   {
     label: "Teacher Studio",
     href: "/teacher",
@@ -481,6 +500,8 @@ function Workspace({
   else if (path[0] === "compute") page = <ComputePage />;
   else if (path[0] === "evaluations") page = <EvaluationPage />;
   else if (path[0] === "operations") page = <OperationsPage />;
+  else if (path[0] === "schedules") page = <SchedulesPage />;
+  else if (path[0] === "notifications") page = <NotificationsPage />;
   else if (path[0] === "settings" && path[1] === "governance")
     page = <GovernancePage />;
   else if (path[0] === "settings" && path[1] === "api-keys")
@@ -565,6 +586,7 @@ function Workspace({
               <span>{active?.label || "Workspace"}</span>
             </div>
             <div className="topbar-actions">
+              <NotificationBell />
               <div className="search-container">
                 <button
                   className="search-trigger"

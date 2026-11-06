@@ -4,6 +4,7 @@ from typing import Any
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     Computed,
     DateTime,
     ForeignKey,
@@ -119,6 +120,8 @@ class Run(TenantRecord, Base):
     __tablename__ = "runs"
     dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"))
     recipe_revision_id: Mapped[str] = mapped_column(ForeignKey("recipe_revisions.id"))
+    submitted_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    schedule_id: Mapped[str | None] = mapped_column(ForeignKey("workflow_schedules.id"), index=True)
     status: Mapped[str] = mapped_column(String(30), default="QUEUED", index=True)
     sample_count: Mapped[int] = mapped_column(Integer, default=0)
     processed: Mapped[int] = mapped_column(Integer, default=0)
@@ -453,6 +456,65 @@ class OperationalProof(TenantRecord, Base):
     source_sha256: Mapped[str] = mapped_column(String(64))
     report: Mapped[dict[str, Any]] = mapped_column(JSONB)
     operator_signature: Mapped[str] = mapped_column(String(64))
+
+
+class WorkflowSchedule(TenantRecord, Base):
+    __tablename__ = "workflow_schedules"
+    __table_args__ = (
+        CheckConstraint(
+            "max_runs BETWEEN 1 AND 100 AND launched_runs BETWEEN 0 AND max_runs AND skipped_runs >= 0 AND revision >= 1",
+            name="ck_schedule_counts",
+        ),
+        CheckConstraint(
+            "run_budget_micro >= 0 AND total_budget_micro >= 0 AND admitted_micro BETWEEN 0 AND total_budget_micro",
+            name="ck_schedule_budgets",
+        ),
+    )
+    name: Mapped[str] = mapped_column(String(160))
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"), index=True)
+    recipe_revision_id: Mapped[str] = mapped_column(ForeignKey("recipe_revisions.id"))
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    authorized_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    authorized_key_id: Mapped[str | None] = mapped_column(ForeignKey("api_keys.id"))
+    authorized_scopes: Mapped[list[str]] = mapped_column(JSONB)
+    definition: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    state: Mapped[str] = mapped_column(String(30), default="ACTIVE", index=True)
+    next_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    max_runs: Mapped[int] = mapped_column(Integer)
+    launched_runs: Mapped[int] = mapped_column(Integer, default=0)
+    skipped_runs: Mapped[int] = mapped_column(Integer, default=0)
+    run_budget_micro: Mapped[int] = mapped_column(BigInteger)
+    total_budget_micro: Mapped[int] = mapped_column(BigInteger)
+    admitted_micro: Mapped[int] = mapped_column(BigInteger, default=0)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    last_error_code: Mapped[str | None] = mapped_column(String(80))
+    last_error: Mapped[str | None] = mapped_column(String(400))
+
+
+class ScheduleOccurrence(TenantRecord, Base):
+    __tablename__ = "schedule_occurrences"
+    __table_args__ = (UniqueConstraint("schedule_id", "scheduled_at"),)
+    schedule_id: Mapped[str] = mapped_column(ForeignKey("workflow_schedules.id"), index=True)
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(40))
+    run_id: Mapped[str | None] = mapped_column(ForeignKey("runs.id"))
+    code: Mapped[str] = mapped_column(String(80))
+    message: Mapped[str] = mapped_column(String(400))
+    estimate_micro: Mapped[int] = mapped_column(BigInteger, default=0)
+
+
+class Notification(TenantRecord, Base):
+    __tablename__ = "notifications"
+    __table_args__ = (UniqueConstraint("organization_id", "user_id", "event_key"),)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    event_key: Mapped[str] = mapped_column(String(180))
+    kind: Mapped[str] = mapped_column(String(80))
+    title: Mapped[str] = mapped_column(String(160))
+    body: Mapped[str] = mapped_column(String(400))
+    resource_kind: Mapped[str] = mapped_column(String(30))
+    resource_id: Mapped[str] = mapped_column(String(64))
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class ReadinessReport(TenantRecord, Base):

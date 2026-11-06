@@ -42,6 +42,8 @@ const scopes = [
   "annotations:manage",
   "annotations:review",
   "annotations:adjudicate",
+  "schedules:manage",
+  "notifications:read",
 ];
 export function KeysPage() {
   const query = useResource<Page<Key>>("/api-keys");

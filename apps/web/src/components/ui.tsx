@@ -157,18 +157,21 @@ export function Empty({
   title,
   description,
   action,
+  headingLevel = "h3",
 }: {
   icon: React.ComponentType<{ size?: number }>;
   title: string;
   description: string;
   action?: React.ReactNode;
+  headingLevel?: "h2" | "h3";
 }) {
+  const Heading = headingLevel;
   return (
     <div className="empty">
       <div className="empty-icon">
         <Icon size={23} />
       </div>
-      <h3>{title}</h3>
+      <Heading>{title}</Heading>
       <p>{description}</p>
       {action}
     </div>
