@@ -429,7 +429,7 @@ async def ready():
     )
 
 
-def session_info(db, user, token):
+def session_info(db, user, token, actor=None):
     memberships = db.execute(
         select(Membership, Organization)
         .join(Organization)
@@ -437,10 +437,18 @@ def session_info(db, user, token):
         .order_by(Organization.name)
     ).all()
     csrf = hmac.new(settings().app_secret.encode(), token.encode(), "sha256").hexdigest()
+    if actor and actor.key_id:
+        memberships = [(member, org) for member, org in memberships if org.id == actor.organization_id]
+        csrf = ""
     return {
         "user": {"id": user.id, "email": user.email, "name": user.name},
         "organizations": [
-            {"id": org.id, "name": org.name, "role": member.role, "scopes": ROLES[member.role]}
+            {
+                "id": org.id,
+                "name": org.name,
+                "role": member.role,
+                "scopes": actor.scopes if actor and actor.key_id else ROLES[member.role],
+            }
             for member, org in memberships
         ],
         "csrf_token": csrf,
@@ -483,7 +491,7 @@ def login(body: s.Login, request: Request, response: Response, db: DB):
 
 @app.get("/v1/auth/session", tags=["Identity"])
 def current_session(request: Request, p: Auth, db: DB):
-    return session_info(db, db.get(User, p.user_id), request.cookies.get("foundry_session", ""))
+    return session_info(db, db.get(User, p.user_id), request.cookies.get("foundry_session", ""), p)
 
 
 @app.post("/v1/auth/logout", tags=["Identity"], status_code=204)
@@ -515,12 +523,12 @@ def me(p: Auth, db: DB):
 
 @app.get("/v1/organizations", tags=["Identity"])
 def organizations(p: Auth, db: DB):
+    query = select(Organization, Membership).join(Membership).where(Membership.user_id == p.user_id)
+    if p.key_id:
+        query = query.where(Organization.id == p.organization_id)
     return {
         "items": [
-            {"id": org.id, "name": org.name, "role": membership.role}
-            for org, membership in db.execute(
-                select(Organization, Membership).join(Membership).where(Membership.user_id == p.user_id)
-            )
+            {"id": org.id, "name": org.name, "role": membership.role} for org, membership in db.execute(query)
         ]
     }
 
@@ -731,9 +739,14 @@ def complete_upload(upload_id: str, body: s.UploadComplete, request: Request, p:
             ) from None
         # Completion may have committed in S3 just before an API crash. Reconcile the object.
     artifact = s3.get_object(Bucket=settings().s3_bucket, Key=record.object_key)
-    if artifact["ContentLength"] > settings().max_upload_bytes:
-        raise Problem(422, "UPLOAD_TOO_LARGE", "Uploaded object exceeds the local limit.")
-    raw = artifact["Body"].read(settings().max_upload_bytes + 1)
+    try:
+        if artifact["ContentLength"] > settings().max_upload_bytes:
+            record.status, record.error = "REJECTED", "Uploaded object exceeds the local limit."
+            db.commit()
+            raise Problem(422, "UPLOAD_TOO_LARGE", record.error)
+        raw = artifact["Body"].read(settings().max_upload_bytes + 1)
+    finally:
+        artifact["Body"].close()
     record.object_version = artifact.get("VersionId")
     if len(raw) != record.expected_bytes or digest(raw) != record.expected_sha256:
         record.status = "REJECTED"

@@ -252,3 +252,15 @@ and worker-aware host readiness. Four unit cases plus real scheduler recovery an
 smoke passed; lint/types passed. Live duplicate-start and paused-worker negatives
 passed and the local app was restored to ready. Evidence is in
 verification/evidence/runtime-hardening/VERIFICATION.md. No deployment performed.
+
+
+## Security audit and new private GitHub repository
+
+User authorized a security audit and creation/upload of a new GitHub repository.
+Confirmed and fixed API-key organization metadata leakage on two identity routes,
+incorrect advertised scopes, and oversized-upload rejection state/body cleanup.
+40 unit/contract, 18 security and two browser cases passed; lint/types and smoke
+passed. Scan checked 698 historical blobs without matching current private values
+or recognizable GitHub/private-key patterns. Known optional diskcache advisory
+remains, with disk caching disabled. CI changed to manual runs and read-only
+permissions. See verification/evidence/github-audit/VERIFICATION.md.

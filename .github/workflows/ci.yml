@@ -1,5 +1,7 @@
 name: Local core verification
-on: [push, pull_request]
+on: [workflow_dispatch]
+permissions:
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
