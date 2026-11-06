@@ -271,3 +271,9 @@ private ai-data-foundry repository was rejected by GitHub GraphQL with
 "Resource not accessible by integration (createRepository)". No repository or
 remote was created and no code was uploaded. A dependent push also failed because
 origin did not exist. Publication remains blocked on repository creation/access.
+
+
+GitHub publication completed after the user created the private repository and
+granted access. Verified the repository was empty and private, then pushed the
+audited history to main at https://github.com/aditya-gaharawar/ai-data-foundry.
+CI remains manually triggered; no deployment was performed.
