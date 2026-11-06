@@ -1,0 +1,3 @@
+uv run pytest -q -m integration
+..............................                                           [100%]
+30 passed, 51 deselected in 154.02s (0:02:34)

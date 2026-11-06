@@ -11,15 +11,16 @@ from .config import settings
 from .errors import Problem
 
 
-def client(public: bool = False):
+def client(public: bool = False, *, config: Config | None = None):
     s = settings()
+    defaults = Config(signature_version="s3v4", s3={"addressing_style": "path"}, retries={"max_attempts": 2})
     return boto3.client(
         "s3",
         endpoint_url=s.s3_public_endpoint if public else s.s3_endpoint,
         aws_access_key_id=s.s3_access_key,
         aws_secret_access_key=s.s3_secret_key,
         region_name="us-east-1",
-        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}, retries={"max_attempts": 2}),
+        config=defaults.merge(config) if config is not None else defaults,
     )
 
 

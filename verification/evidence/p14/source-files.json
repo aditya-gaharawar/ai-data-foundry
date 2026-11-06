@@ -1,0 +1,15 @@
+{
+  "base_commit": "5f2237575c286c2d292ff2da07d7a605058d388a",
+  "files": {
+    "apps/api/foundry/api.py": "c1bd249370731381664389324f5d4863f0d11aa52de2518c84a457ec03f6e2ab",
+    "apps/api/foundry/health.py": "eabf20a9c89c46b55014ea3d1cb5eacdcd29e4931fa753d3acb014bae6f78439",
+    "apps/api/foundry/storage.py": "a2594e7be8a0c7174106fc64f33b935801ad3239adf0244dbdbe207b912dcdd4",
+    "apps/web/src/app/api/v1/[...path]/route.ts": "6573e28357a3a5afd429984b2a82271a59537ba3debcad371eb3447cc07c6e94",
+    "apps/web/src/components/console.tsx": "d67743a990afd61cdb04483230cc86b2458f623b5a1d9e7b51240ef1e682f9a1",
+    "apps/web/src/lib/api.ts": "19f864fbf38f01cc20e663fa78f93994c1f1ff6be3c455c475a64867e3337ed6",
+    "tests/test_health.py": "80e209bbe659f828603fd0edc19cb2d193e36e44772ab6bed8b81182fe16edcf",
+    "tests/e2e/reliability.spec.ts": "2e3376f1ab87b4c3a602772b6cf69f97bb3da963dd712da39a1979f957ae1748",
+    "apps/web/src/components/evaluation-page.tsx": "9f235360b01f6fa2e8c943e27c85be07d2893e0731675e5a9b70ff23e4944b61",
+    "tests/e2e/expansion.spec.ts": "59bcb9e6c074ad5372cf81cd1ad89246c0f96a702497778eda6cdc7ceec059af"
+  }
+}

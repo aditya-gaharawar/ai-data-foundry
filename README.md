@@ -22,6 +22,11 @@ Each launch rechecks current permissions, rights, governance and budget; pause,
 resume, cancellation and immutable occurrence history work through the console,
 API, SDKs and CLI. See [the automation guide](docs/P13_AUTOMATION.md).
 
+P14 improves local recovery: API outages have an explicit reconnect screen,
+expired sessions clear cached workspace data, the proxy bounds streamed control
+requests, and readiness checks report each dependency independently. See
+[local operations](docs/runbooks/local-operations.md).
+
 ## Start
 
 Requirements: Linux AMD64, Node 24, pnpm 11.25, Python 3.12, uv 0.13.4,

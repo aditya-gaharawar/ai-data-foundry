@@ -400,6 +400,20 @@ export function EvaluationPage() {
                 evidence_note: note,
               });
               if (result) {
+                // The selected record must exist in the options before the
+                // import toast lets the user continue to the next form.
+                cache.setQueryData<Page<Evaluation>>(
+                  [organization.id, "/evaluations?limit=100"],
+                  (current) => ({
+                    ...current,
+                    items: [
+                      result,
+                      ...(current?.items ?? []).filter(
+                        (item) => item.id !== result.id,
+                      ),
+                    ],
+                  }),
+                );
                 setSelectedEvaluation(result.id);
                 toast("Evaluation imported with immutable evidence.");
               }

@@ -153,7 +153,12 @@ export type Overview = {
   usage: Usage;
   capabilities: Record<string, boolean | string>;
 };
-export type Options = { method?: string; body?: unknown; key?: string };
+export type Options = {
+  method?: string;
+  body?: unknown;
+  key?: string;
+  signal?: AbortSignal;
+};
 export type ApiCall = <T>(path: string, options?: Options) => Promise<T>;
 
 export class ApiError extends Error {
@@ -181,27 +186,51 @@ export async function request<T>(
   if (csrf) headers["X-CSRF-Token"] = csrf;
   if (method === "POST")
     headers["Idempotency-Key"] = options.key || crypto.randomUUID();
-  const result = await fetch(`/api/v1${path}`, {
-    method,
-    credentials: "same-origin",
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
-  if (!result.ok) {
-    const error = await result.json().catch(() => ({
-      code: "REQUEST_FAILED",
-      detail: "The request could not be completed.",
-    }));
+  let result: Response;
+  try {
+    result = await fetch(`/api/v1${path}`, {
+      method,
+      credentials: "same-origin",
+      cache: "no-store",
+      headers,
+      signal: options.signal,
+      body:
+        options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+  } catch (error) {
+    if (options.signal?.aborted) throw error;
     throw new ApiError(
-      result.status,
-      error.code,
-      error.detail,
-      error.request_id || result.headers.get("X-Request-Id"),
+      0,
+      "NETWORK_UNAVAILABLE",
+      "Unable to connect to Foundry. Check your connection and try again.",
     );
   }
-  return result.status === 204
-    ? (undefined as T)
-    : (result.json() as Promise<T>);
+  if (!result.ok) {
+    const body: unknown = await result.json().catch(() => null);
+    const error =
+      body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+    throw new ApiError(
+      result.status,
+      typeof error.code === "string" ? error.code : "REQUEST_FAILED",
+      typeof error.detail === "string"
+        ? error.detail
+        : "The request could not be completed. Please try again.",
+      typeof error.request_id === "string"
+        ? error.request_id
+        : result.headers.get("X-Request-Id") || undefined,
+    );
+  }
+  if (result.status === 204) return undefined as T;
+  try {
+    return (await result.json()) as T;
+  } catch {
+    throw new ApiError(
+      502,
+      "INVALID_RESPONSE",
+      "Foundry returned an unreadable response. Please try again.",
+      result.headers.get("X-Request-Id") || undefined,
+    );
+  }
 }
 export async function saveExport(
   call: ApiCall,

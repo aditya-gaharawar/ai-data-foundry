@@ -9,6 +9,25 @@ CPU worker heartbeats. API logs use request IDs and paths without query strings.
 Worker logs and run events use organization/run IDs. No raw dataset content,
 passwords, API keys, signing secrets or signed grant URLs belong in public logs.
 
+Readiness probes PostgreSQL, object storage and Temporal independently and in
+parallel, with a four-second deadline per probe. A failed dependency returns
+HTTP 503 with its own false flag; healthy dependencies keep their true flags.
+Database connection/statement and storage connection/read timeouts also bound
+the underlying work. This endpoint checks service connectivity; it does not
+certify worker health, database migrations, or a production release.
+
+The console shows a recovery screen when its session check cannot reach the API.
+Restore the failed service and select **Try again**. A confirmed HTTP 401 clears
+cached workspace queries and returns to sign-in. Service failures do not mean
+the password was rejected. Malformed upstream errors retain a readable message
+and request ID when one is available.
+
+Both the web proxy and API limit JSON control requests to 1 MiB. The proxy counts
+streamed bytes as well as checking Content-Length; a chunked request cannot
+bypass the limit. Dataset bytes still use the existing bounded S3 multipart
+upload flow. Proxy-generated failures use Problem Details, no-store caching and
+`req_proxy_` request IDs; API-generated failures retain their API request IDs.
+
 Inspect `.local/api.log`, `.local/worker.log`, `.local/web.log`, and
 `docker compose logs temporal` for failures. Database migrations use Alembic;
 `uv run alembic check` verifies model/schema consistency. Do not edit a published

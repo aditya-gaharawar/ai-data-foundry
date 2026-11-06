@@ -1,4 +1,3 @@
-import asyncio
 import hashlib
 import hmac
 import json
@@ -18,7 +17,6 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import func, select, text, tuple_
 from sqlalchemy.orm import Session as DBSession
 from starlette.exceptions import HTTPException
-from temporalio.client import Client as TemporalClient
 
 from . import schemas as s
 from .automation import register as register_automation
@@ -42,6 +40,7 @@ from .dto import (
 from .errors import Problem
 from .evaluation import register as register_evaluation
 from .governance import register as register_governance
+from .health import dependencies as readiness_dependencies
 from .media import prepare_image
 from .models import (
     ApiKey,
@@ -419,22 +418,8 @@ def live():
 
 
 @app.get("/v1/health/ready", tags=["Health"])
-async def ready(db: DB):
-    dependencies = {"database": False, "object_storage": False, "workflow": False}
-    try:
-        db.execute(text("SELECT 1"))
-        dependencies["database"] = True
-        await asyncio.to_thread(s3client().head_bucket, Bucket=settings().s3_bucket)
-        dependencies["object_storage"] = True
-        connection = await asyncio.wait_for(TemporalClient.connect(settings().temporal_address), timeout=3)
-        await connection.workflow_service.get_system_info(
-            __import__(
-                "temporalio.api.workflowservice.v1", fromlist=["GetSystemInfoRequest"]
-            ).GetSystemInfoRequest()
-        )
-        dependencies["workflow"] = True
-    except Exception:
-        logger.warning("readiness_dependency_unavailable")
+async def ready():
+    dependencies = await readiness_dependencies()
     return JSONResponse(
         status_code=200 if all(dependencies.values()) else 503,
         content={

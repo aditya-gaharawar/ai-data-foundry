@@ -42,7 +42,7 @@ import type {
   Project,
   SessionInfo,
 } from "@/lib/api";
-import { request } from "@/lib/api";
+import { ApiError, request } from "@/lib/api";
 import { WorkspaceContext, useWorkspace } from "./context";
 import {
   DatasetDetail,
@@ -167,11 +167,35 @@ function Brand() {
 }
 
 export function Console({ path }: { path: string[] }) {
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["session"],
-    queryFn: () => request<SessionInfo>("/auth/session"),
+    queryFn: async ({ signal }) => {
+      try {
+        return await request<SessionInfo>("/auth/session", { signal });
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) return null;
+        throw error;
+      }
+    },
     retry: false,
   });
+  const clearWorkspace = useCallback(() => {
+    const filter = {
+      predicate: (item: { queryKey: readonly unknown[] }) =>
+        item.queryKey[0] !== "session",
+    };
+    void queryClient.cancelQueries(filter);
+    queryClient.removeQueries(filter);
+  }, [queryClient]);
+  const expireSession = useCallback(() => {
+    void queryClient.cancelQueries({ queryKey: ["session"], exact: true });
+    queryClient.setQueryData(["session"], null);
+    clearWorkspace();
+  }, [queryClient, clearWorkspace]);
+  useEffect(() => {
+    if (query.data === null) clearWorkspace();
+  }, [query.data, clearWorkspace]);
   const [orgId, setOrgId] = useState("");
   useEffect(() => {
     if (query.data) {
@@ -189,7 +213,27 @@ export function Console({ path }: { path: string[] }) {
         <Loading />
       </div>
     );
+  if (query.error)
+    return (
+      <SessionRecovery
+        error={query.error}
+        busy={query.isFetching}
+        retry={() => void query.refetch()}
+      />
+    );
   if (!query.data) return <LoginPage />;
+  if (query.data.organizations.length === 0)
+    return (
+      <SessionRecovery
+        error={
+          new Error(
+            "Your account has no workspace access. Contact your administrator.",
+          )
+        }
+        busy={query.isFetching}
+        retry={() => void query.refetch()}
+      />
+    );
   const organization = query.data.organizations.find((org) => org.id === orgId);
   if (!organization) return <Loading />;
   return (
@@ -198,11 +242,36 @@ export function Console({ path }: { path: string[] }) {
       session={query.data}
       organization={organization}
       path={path}
+      onSessionExpired={expireSession}
       changeOrganization={(value) => {
         localStorage.setItem("foundry-org", value);
         setOrgId(value);
       }}
     />
+  );
+}
+
+function SessionRecovery({
+  error,
+  busy,
+  retry,
+}: {
+  error: unknown;
+  busy: boolean;
+  retry: () => void;
+}) {
+  return (
+    <main className="login-form-wrap" style={{ minHeight: "100dvh" }}>
+      <div className="login-form">
+        <Brand />
+        <h1 style={{ marginTop: 32 }}>Unable to open your workspace</h1>
+        <p>Your session could not be checked. Try again to reconnect.</p>
+        <ErrorNotice error={error} />
+        <Button onClick={retry} busy={busy}>
+          Try again
+        </Button>
+      </div>
+    </main>
   );
 }
 
@@ -303,11 +372,13 @@ function Workspace({
   organization,
   path,
   changeOrganization,
+  onSessionExpired,
 }: {
   session: SessionInfo;
   organization: Organization;
   path: string[];
   changeOrganization: (value: string) => void;
+  onSessionExpired: () => void;
 }) {
   const [project, setProject] = useState("");
   const [message, setMessage] = useState("");
@@ -320,9 +391,21 @@ function Workspace({
   const router = useRouter();
   const queryClient = useQueryClient();
   const call = useCallback<ApiCall>(
-    (route, options) =>
-      request(route, options, organization.id, session.csrf_token),
-    [organization.id, session.csrf_token],
+    async (route, options) => {
+      try {
+        return await request(
+          route,
+          options,
+          organization.id,
+          session.csrf_token,
+        );
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401)
+          onSessionExpired();
+        throw error;
+      }
+    },
+    [organization.id, session.csrf_token, onSessionExpired],
   );
   const projects = useQuery({
     queryKey: [organization.id, "/projects"],

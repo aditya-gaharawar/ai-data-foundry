@@ -1,0 +1,8 @@
+{
+  "recipient": "usr_85061adcbe104b65be5688df095cf79d",
+  "notice_id": "ntf_90f075d0cf324321bcb71a2d738f6bd6",
+  "cross_user_and_tenant": "DENIED",
+  "protected_target": null,
+  "replayed_acknowledgement_rechecks_visibility": true,
+  "cursor_identity_and_filter_bound": true
+}

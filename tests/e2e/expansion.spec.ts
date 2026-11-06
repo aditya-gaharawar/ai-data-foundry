@@ -410,20 +410,46 @@ test("Evaluations console compares versions, imports fixture counts, and saves a
     .fill(
       "Synthetic imported counts exercise this protocol only. No model or scientific improvement was measured.",
     );
+  // A slow list refresh must not leave a successfully imported evaluation
+  // missing from the feedback form's required select.
+  let delayEvaluationRefresh = true;
+  await page.route("**/api/v1/evaluations?limit=100", async (route) => {
+    if (delayEvaluationRefresh)
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+    await route.continue();
+  });
+  const importedResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/v1/evaluations") &&
+      response.request().method() === "POST",
+  );
   await page
     .getByRole("button", { name: "Import results", exact: true })
     .click();
+  const imported = await (await importedResponse).json();
   await expect(
     page.getByText("Evaluation imported with immutable evidence.", {
       exact: true,
     }),
   ).toBeVisible();
+  await expect(
+    page.getByLabel("Source evaluation", { exact: true }),
+  ).toHaveValue(imported.id);
+  const feedbackResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/v1/feedback") &&
+      response.request().method() === "POST",
+  );
   await page
     .getByRole("button", { name: "Save feedback proposal", exact: true })
     .click();
+  expect((await (await feedbackResponse).json()).evaluation_id).toBe(
+    imported.id,
+  );
   await expect(
     page.getByText("Bounded feedback proposal saved.", { exact: true }),
   ).toBeVisible();
+  delayEvaluationRefresh = false;
   await page
     .getByLabel("Feedback decision note", { exact: true })
     .fill("Reviewed bounded fixture recommendation, manual launch only");
@@ -439,6 +465,7 @@ test("Evaluations console compares versions, imports fixture counts, and saves a
     page.getByText("Feedback decision saved.", { exact: true }),
   ).toBeVisible();
   await screenshot(page, "evaluation-diff-feedback-light");
+  await page.unrouteAll({ behavior: "wait" });
 });
 
 test("Governance console records policy, legal hold, independent request, and SCIM revocation", async ({

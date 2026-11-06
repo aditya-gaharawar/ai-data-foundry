@@ -1,0 +1,77 @@
+{
+  "recorded_at": "2026-11-06T10:01:09.571861+00:00",
+  "environment": "local",
+  "unique_tests_verified": 107,
+  "counts": {
+    "unit_contract": 35,
+    "integration": 30,
+    "security": 16,
+    "browser": 26
+  },
+  "commands": [
+    {
+      "command": "make lint",
+      "exit_code": 0
+    },
+    {
+      "command": "make test",
+      "exit_code": 0,
+      "passed": 35
+    },
+    {
+      "command": "make test-integration",
+      "exit_code": 0,
+      "passed": 30,
+      "log": "integration.log"
+    },
+    {
+      "command": "make test-security",
+      "exit_code": 0,
+      "passed": 16,
+      "log": "security.log"
+    },
+    {
+      "command": "make test-e2e",
+      "exit_code": 2,
+      "passed": 25,
+      "failed": 1,
+      "log": "e2e.log",
+      "resolution": "Delayed evaluation route cleanup in the test was corrected and the affected case passed separately; application code was unchanged between these two runs."
+    },
+    {
+      "command": "pnpm exec playwright test tests/e2e/expansion.spec.ts --grep 'Evaluations console'",
+      "exit_code": 0,
+      "passed": 1,
+      "log": "evaluation-final.log"
+    },
+    {
+      "command": "make smoke",
+      "exit_code": 0,
+      "passed": 1,
+      "log": "smoke.log",
+      "repeat_not_added_to_unique_count": true
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit_code": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run alembic check",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run python scripts/contracts.py --check",
+      "exit_code": 0,
+      "paths": 123,
+      "python_models": 90
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

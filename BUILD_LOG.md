@@ -212,3 +212,33 @@ No Git remote exists, so no hosted PR, push, merge or deployment is claimed.
 Source and screenshot bundles exclude private settings, native weights/binaries,
 raw recovery archives and browser traces. No paid service or production system
 was used or changed. See the detailed report and `commands.json` for evidence.
+
+
+## P14 — Local reliability and recovery
+
+6 November 2026. The user cancelled deployment and requested codebase improvements.
+Implemented explicit API-outage recovery, session-expiry cache removal, readable
+malformed/network errors, a streamed 1 MiB proxy control-body limit, independent
+bounded readiness probes, and an evaluation-import/feedback selector race fix.
+No schema change, paid provisioning or deployment was performed.
+
+Verified 107 distinct cases: 35 unit/contract, 30 integration, 16 security and
+26 browser cases across the full run and focused recheck. Lint, TypeScript,
+optimized build, schema/contract drift checks and real export/webhook/SDK/CLI
+smoke passed. The final full browser run had 25 passing cases and one delayed-route
+test cleanup failure; that cleanup was corrected and the remaining case passed
+separately. The application code did not change between those two runs. Exact
+commands and exit codes, including the nonzero browser-suite exit, are retained
+in verification/evidence/p14/commands.json.
+
+The wider run exposed and fixed the real evaluation selector race. An earlier
+integration attempt could not replace its worker because the local supervisor
+had stopped. Verified orphan processes were stopped and the stack restarted
+under a detached supervisor; the complete integration/security suites passed.
+A native S3 client cleanup error and initial browser locator/focus assertions
+were corrected before final verification. No initial failure is presented as a pass.
+
+See verification/evidence/p14/VERIFICATION.md for results, screenshots, runtime
+health and source hashes. New regression captures are stored under P14 and prior
+phase artifacts restored. Work is on phase/p14-local-reliability. The local stack
+is running at localhost:3000 with real API, storage, database and workers.

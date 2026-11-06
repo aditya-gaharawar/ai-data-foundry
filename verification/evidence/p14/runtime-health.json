@@ -1,0 +1,14 @@
+{
+  "observed_at": "2026-11-06T09:47:47.084381+00:00",
+  "environment": "local",
+  "api_status": 200,
+  "readiness": {
+    "status": "ready",
+    "dependencies": {
+      "database": true,
+      "object_storage": true,
+      "workflow": true
+    }
+  },
+  "web_login_status": 200
+}
