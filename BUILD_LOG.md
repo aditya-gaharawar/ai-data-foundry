@@ -264,3 +264,10 @@ passed. Scan checked 698 historical blobs without matching current private value
 or recognizable GitHub/private-key patterns. Known optional diskcache advisory
 remains, with disk caching disabled. CI changed to manual runs and read-only
 permissions. See verification/evidence/github-audit/VERIFICATION.md.
+
+
+GitHub publication attempt: authenticated as aditya-gaharawar. Creating the new
+private ai-data-foundry repository was rejected by GitHub GraphQL with
+"Resource not accessible by integration (createRepository)". No repository or
+remote was created and no code was uploaded. A dependent push also failed because
+origin did not exist. Publication remains blocked on repository creation/access.
