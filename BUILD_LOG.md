@@ -242,3 +242,13 @@ See verification/evidence/p14/VERIFICATION.md for results, screenshots, runtime
 health and source hashes. New regression captures are stored under P14 and prior
 phase artifacts restored. Work is on phase/p14-local-reliability. The local stack
 is running at localhost:3000 with real API, storage, database and workers.
+
+
+## Local runtime hardening follow-up
+
+Implemented duplicate-start locking, occupied-port checks, atomic PIDs, bounded
+restart backoff and failure exits, closed log handles, graceful shutdown/escalation,
+and worker-aware host readiness. Four unit cases plus real scheduler recovery and
+smoke passed; lint/types passed. Live duplicate-start and paused-worker negatives
+passed and the local app was restored to ready. Evidence is in
+verification/evidence/runtime-hardening/VERIFICATION.md. No deployment performed.

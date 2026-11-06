@@ -55,3 +55,15 @@ and review history are append-only; frozen sessions/tasks cannot be modified.
 P07 adds authorized model adapters; P08–P09 add verified
 compute/simulation; P10 adds evaluation; P11–P12 add enterprise, operations,
 backup/restore, load, security and release gates. Production remains disabled.
+
+
+The host runner holds an exclusive checkout lock and refuses occupied application
+ports before starting services. API, worker and receiver crashes retry up to five
+times with increasing delay; a process healthy for 60 seconds resets that count.
+Persistent failure or web exit stops the stack with a nonzero exit code. Shutdown
+waits for children and escalates unresponsive processes after five seconds.
+
+`uv run python scripts/wait_ready.py --timeout 90` checks host supervisor/worker
+identity and HTTP readiness. A stopped worker blocks it even while HTTP responds.
+Use `--services-only` for container HTTP checks; check container worker health
+separately. Inspect `.local` logs when startup or retries fail.
